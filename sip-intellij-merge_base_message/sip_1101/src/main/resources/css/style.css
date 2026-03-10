@@ -1,0 +1,517 @@
+/* 全局样式 */
+.root {
+    -fx-font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+    -fx-font-size: 14px;
+    -fx-font-smoothing-type: gray;
+}
+
+/* ==================== 登录界面样式 ==================== */
+.login-container {
+    -fx-background-color: linear-gradient(to bottom right, #667eea 0%, #764ba2 100%);
+}
+
+.login-card {
+    -fx-background-color: white;
+    -fx-background-radius: 20px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 20, 0, 0, 10);
+}
+
+.title-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+    -fx-font-size: 28px;
+}
+
+.subtitle-label {
+    -fx-text-fill: #7f8c8d;
+    -fx-font-size: 13px;
+}
+
+.field-label {
+    -fx-text-fill: #34495e;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+}
+
+.login-field {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #e9ecef;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 12px 15px;
+    -fx-font-size: 14px;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 2);
+}
+
+.login-field:focused {
+    -fx-background-color: white;
+    -fx-border-color: #667eea;
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.3), 8, 0, 0, 0);
+}
+
+.login-button {
+    -fx-background-color: linear-gradient(to right, #667eea 0%, #764ba2 100%);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-background-radius: 8px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.4), 10, 0, 0, 5);
+}
+
+.login-button:hover {
+    -fx-background-color: linear-gradient(to right, #5568d3 0%, #6a4293 100%);
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.login-button:pressed {
+    -fx-background-color: linear-gradient(to right, #4d5bc9 0%, #5e3a84 100%);
+    -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.3), 5, 0, 0, 2);
+}
+
+.login-button:disabled {
+    -fx-background-color: #bdc3c7;
+    -fx-opacity: 0.7;
+}
+
+.status-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+}
+
+.info-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #95a5a6;
+}
+
+.footer-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #95a5a6;
+}
+
+/* ==================== 主界面样式 ==================== */
+
+/* 左侧边栏 */
+.sidebar {
+    -fx-background-color: #2e2e2e;
+}
+
+.user-header {
+    -fx-background-color: #f7f7f7;
+}
+
+.avatar-circle {
+    -fx-background-color: white;
+    -fx-background-radius: 25px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 3);
+}
+
+.username-label {
+    -fx-text-fill: #333;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+}
+
+.status-indicator {
+    -fx-font-size: 14px;
+}
+
+/* 好友列表 */
+.friend-list {
+    -fx-background-color: #f7f7f7;
+    -fx-border-color: transparent;
+}
+
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 12px 15px;
+    -fx-border-color: transparent;
+}
+
+.list-cell:selected {
+    -fx-background-color: #c6c6c6;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+}
+
+.list-cell:hover {
+    -fx-background-color: #e9e9e9;
+}
+
+.list-cell:selected:hover {
+    -fx-background-color: #c6c6c6;
+}
+
+.list-cell .label {
+    -fx-text-fill: #333;
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+}
+
+.list-cell:selected .label {
+    -fx-text-fill: #333;
+    -fx-font-weight: 600;
+}
+
+/* 搜索框 */
+.search-field {
+    -fx-background-color: #e2e2e2;
+    -fx-border-color: transparent;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px 12px;
+    -fx-font-size: 13px;
+    -fx-prompt-text-fill: #999;
+}
+
+.search-field:focused {
+    -fx-background-color: white;
+    -fx-border-color: #b2b2b2;
+    -fx-border-width: 1px;
+}
+
+/* 消息气泡 */
+.message-bubble-sent {
+    -fx-background-color: #95ec69;
+    -fx-text-fill: black;
+    -fx-padding: 10px 14px;
+    -fx-background-radius: 5px;
+    -fx-font-size: 14px;
+}
+
+.message-bubble-received {
+    -fx-background-color: white;
+    -fx-text-fill: black;
+    -fx-padding: 10px 14px;
+    -fx-background-radius: 5px;
+    -fx-font-size: 14px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 2, 0, 0, 1);
+}
+
+/* 聊天头部 */
+.chat-header {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #e5e5e5 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.chat-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+/* 按钮样式 */
+.button {
+    -fx-cursor: hand;
+    -fx-background-radius: 4px;
+    -fx-font-weight: 500;
+}
+
+.button:hover {
+    -fx-opacity: 0.85;
+}
+
+.button:pressed {
+    -fx-opacity: 0.7;
+}
+
+.primary-button {
+    -fx-background-color: #e9e9e9;
+    -fx-text-fill: #07c160;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 2px;
+    -fx-background-radius: 2px;
+    -fx-font-size: 14px;
+    -fx-padding: 10px 20px;
+}
+
+.primary-button:hover {
+    -fx-background-color: #d2d2d2;
+}
+
+.success-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #666;
+    -fx-font-size: 14px;
+    -fx-padding: 10px 20px;
+    -fx-border-width: 0;
+}
+
+.success-button:hover {
+    -fx-text-fill: black;
+}
+
+.info-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #666;
+    -fx-font-size: 14px;
+    -fx-padding: 10px 20px;
+    -fx-border-width: 0;
+}
+
+.info-button:hover {
+    -fx-text-fill: black;
+}
+
+.add-button {
+    -fx-background-color: #e2e2e2;
+    -fx-text-fill: #666;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4px;
+    -fx-border-width: 0;
+}
+
+.add-button:hover {
+    -fx-background-color: #dcdcdc;
+}
+
+/* 滚动条样式 */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .corner {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-padding: 0 2 0 2;
+}
+
+.scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .thumb {
+    -fx-background-color: #cbd5e0;
+    -fx-background-radius: 4px;
+    -fx-background-insets: 0;
+}
+
+.scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #a0aec0;
+}
+
+.scroll-bar:vertical .thumb:pressed {
+    -fx-background-color: #718096;
+}
+
+.scroll-bar:vertical .increment-button,
+.scroll-bar:vertical .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-bar:vertical .increment-arrow,
+.scroll-bar:vertical .decrement-arrow {
+    -fx-shape: "";
+    -fx-padding: 0;
+}
+
+/* TextArea样式 */
+.text-area {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 10px;
+    -fx-font-size: 14px;
+}
+
+.text-area:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.text-area .content {
+    -fx-background-color: transparent;
+}
+
+/* TextField样式 */
+.text-field {
+    -fx-background-color: white;
+    -fx-border-color: #e9ecef;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 10px 15px;
+    -fx-font-size: 14px;
+}
+
+.text-field:focused {
+    -fx-background-color: white;
+    -fx-border-color: #667eea;
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.15), 8, 0, 0, 0);
+}
+
+/* ComboBox样式 */
+.combo-box {
+    -fx-background-color: rgba(255,255,255,0.2);
+    -fx-border-color: rgba(255,255,255,0.3);
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+}
+
+.combo-box:hover {
+    -fx-background-color: rgba(255,255,255,0.3);
+    -fx-border-color: rgba(255,255,255,0.5);
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 5);
+}
+
+.combo-box-popup .list-view .list-cell {
+    -fx-text-fill: #2c3e50;
+    -fx-padding: 8px 12px;
+}
+
+.combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #f8f9fa;
+}
+
+/* 输入区域 */
+.input-area {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #e5e5e5 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* 工具按钮 */
+.tool-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #666;
+    -fx-font-size: 13px;
+    -fx-padding: 6px 12px;
+    -fx-background-radius: 4px;
+    -fx-border-width: 0;
+}
+
+.tool-button:hover {
+    -fx-text-fill: black;
+}
+
+/* MenuButton */
+.menu-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #333;
+    -fx-font-size: 20px;
+    -fx-border-width: 0;
+}
+
+.menu-button:hover {
+    -fx-text-fill: #666;
+}
+
+.context-menu {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 5);
+    -fx-background-radius: 8px;
+}
+
+.context-menu .menu-item {
+    -fx-padding: 8px 20px;
+}
+
+.context-menu .menu-item:hover {
+    -fx-background-color: #f8f9fa;
+}
+
+.context-menu .menu-item .label {
+    -fx-text-fill: #2c3e50;
+}
+
+/* 消息区域背景 */
+.message-area {
+    -fx-background-color: #f5f5f5;
+}
+
+/* 分隔线 */
+.separator .line {
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 1px;
+}
+
+/* 导航按钮 (用于侧边栏) */
+.nav-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #999;
+    -fx-font-size: 20px;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.nav-btn:hover {
+    -fx-text-fill: white;
+}
+
+.nav-btn-active {
+    -fx-text-fill: #07c160;
+}
+
+/* 列表面板 */
+.list-panel {
+    -fx-background-color: #f7f7f7;
+    -fx-border-color: transparent #e5e5e5 transparent transparent;
+}
+
+/* 聊天面板 */
+.chat-panel {
+    -fx-background-color: #f5f5f5;
+}
+
+/* 发送按钮 */
+.send-btn {
+    -fx-background-color: #e9e9e9;
+    -fx-text-fill: #07c160;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 2px;
+    -fx-background-radius: 2px;
+}
+
+.send-btn:hover {
+    -fx-background-color: #d2d2d2;
+}
+
+/* 消息输入框 */
+.msg-input {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.msg-input:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.msg-input .content {
+    -fx-background-color: transparent;
+}
+
+/* 工具按钮 (通话按钮等) */
+.tool-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #666;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.tool-btn:hover {
+    -fx-text-fill: black;
+}

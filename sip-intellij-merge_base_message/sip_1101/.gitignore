@@ -1,0 +1,41 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+
+# Log files
+*.log
+registerLog.txt
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build output
+*.class
+
+# Package Files
+*.jar
+*.war
+*.ear
+
+# Special Windows device file
+nul
+
+# Large test files
+client.txt
+client2.txt
+
+# Database files
+*.db
+
+# Temporary files
+*.tmp
+*~

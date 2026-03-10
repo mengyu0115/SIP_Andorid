@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.sip.client.ui.admin.AdminDashboard"
+            prefHeight="900.0" prefWidth="1400.0"
+            stylesheets="@/css/admin-dashboard.css">
+
+    <!-- 顶部标题栏 -->
+    <top>
+        <VBox styleClass="header">
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <padding>
+                    <Insets top="15" right="20" bottom="15" left="20"/>
+                </padding>
+                <Label text="SIP 系统管理后台" styleClass="title">
+                    <font>
+                        <Font name="System Bold" size="24"/>
+                    </font>
+                </Label>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="refreshButton" text="刷新数据" onAction="#handleRefresh" styleClass="btn-primary"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- 主内容区域 -->
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+
+            <!-- 概览面板 -->
+            <Tab text="系统概览">
+                <ScrollPane fitToWidth="true">
+                    <VBox spacing="20">
+                        <padding>
+                            <Insets top="20" right="20" bottom="20" left="20"/>
+                        </padding>
+
+                        <!-- 统计卡片 -->
+                        <GridPane hgap="20" vgap="20">
+                            <!-- 第一行 -->
+                            <VBox styleClass="stat-card" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                <Label text="总用户数" styleClass="stat-label"/>
+                                <Label fx:id="totalUsersLabel" text="0" styleClass="stat-value"/>
+                            </VBox>
+
+                            <VBox styleClass="stat-card" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                <Label text="在线用户" styleClass="stat-label"/>
+                                <Label fx:id="onlineUsersLabel" text="0" styleClass="stat-value"/>
+                            </VBox>
+
+                            <VBox styleClass="stat-card" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                                <Label text="总通话数" styleClass="stat-label"/>
+                                <Label fx:id="totalCallsLabel" text="0" styleClass="stat-value"/>
+                            </VBox>
+
+                            <VBox styleClass="stat-card" GridPane.columnIndex="3" GridPane.rowIndex="0">
+                                <Label text="进行中通话" styleClass="stat-label"/>
+                                <Label fx:id="activeCallsLabel" text="0" styleClass="stat-value"/>
+                            </VBox>
+
+                            <!-- 第二行 -->
+                            <VBox styleClass="stat-card" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                <Label text="总消息数" styleClass="stat-label"/>
+                                <Label fx:id="totalMessagesLabel" text="0" styleClass="stat-value"/>
+                            </VBox>
+
+                            <VBox styleClass="stat-card" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                <Label text="今日消息" styleClass="stat-label"/>
+                                <Label fx:id="todayMessagesLabel" text="0" styleClass="stat-value"/>
+                            </VBox>
+
+                            <VBox styleClass="stat-card" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                <Label text="CPU 负载" styleClass="stat-label"/>
+                                <Label fx:id="cpuLoadLabel" text="0.00" styleClass="stat-value"/>
+                            </VBox>
+
+                            <VBox styleClass="stat-card" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                                <Label text="内存使用率" styleClass="stat-label"/>
+                                <Label fx:id="memoryUsageLabel" text="0.00%" styleClass="stat-value"/>
+                            </VBox>
+
+                            <!-- 第三行 -->
+                            <VBox styleClass="stat-card" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                                <Label text="线程数" styleClass="stat-label"/>
+                                <Label fx:id="threadCountLabel" text="0" styleClass="stat-value"/>
+                            </VBox>
+
+                            <VBox styleClass="stat-card" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.columnSpan="3">
+                                <Label text="系统运行时间" styleClass="stat-label"/>
+                                <Label fx:id="systemUptimeLabel" text="0 分钟" styleClass="stat-value"/>
+                            </VBox>
+                        </GridPane>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- 用户管理面板 -->
+            <Tab text="用户管理">
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+
+                    <!-- 搜索栏 -->
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="搜索:"/>
+                        <TextField fx:id="searchKeywordField" promptText="输入用户名或昵称" prefWidth="300"/>
+                        <Button fx:id="searchButton" text="搜索" onAction="#handleSearchUsers"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="deleteUserButton" text="删除用户" onAction="#handleDeleteUser" styleClass="btn-danger"/>
+                        <Button fx:id="resetPasswordButton" text="重置密码" onAction="#handleResetPassword"/>
+                    </HBox>
+
+                    <!-- 用户表格 -->
+                    <TableView fx:id="userTableView" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="userIdColumn" text="ID" prefWidth="80"/>
+                            <TableColumn fx:id="usernameColumn" text="用户名" prefWidth="150"/>
+                            <TableColumn fx:id="nicknameColumn" text="昵称" prefWidth="150"/>
+                            <TableColumn fx:id="sipUriColumn" text="SIP URI" prefWidth="300"/>
+                            <TableColumn fx:id="statusColumn" text="状态" prefWidth="100"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <!-- 统计分析面板 -->
+            <Tab text="统计分析">
+                <ScrollPane fitToWidth="true">
+                    <VBox spacing="20">
+                        <padding>
+                            <Insets top="20" right="20" bottom="20" left="20"/>
+                        </padding>
+
+                        <!-- 饼图 -->
+                        <HBox spacing="20">
+                            <VBox spacing="10" HBox.hgrow="ALWAYS">
+                                <Label text="通话类型分布">
+                                    <font>
+                                        <Font name="System Bold" size="14"/>
+                                    </font>
+                                </Label>
+                                <PieChart fx:id="callTypeChart" prefHeight="300"/>
+                            </VBox>
+
+                            <VBox spacing="10" HBox.hgrow="ALWAYS">
+                                <Label text="通话质量分布">
+                                    <font>
+                                        <Font name="System Bold" size="14"/>
+                                    </font>
+                                </Label>
+                                <PieChart fx:id="callQualityChart" prefHeight="300"/>
+                            </VBox>
+                        </HBox>
+
+                        <!-- 柱状图 -->
+                        <VBox spacing="10">
+                            <Label text="通话时段分布 (24小时)">
+                                <font>
+                                    <Font name="System Bold" size="14"/>
+                                </font>
+                            </Label>
+                            <BarChart fx:id="callHourChart" prefHeight="300">
+                                <xAxis>
+                                    <CategoryAxis fx:id="callHourXAxis" label="时段"/>
+                                </xAxis>
+                                <yAxis>
+                                    <NumberAxis fx:id="callHourYAxis" label="通话次数"/>
+                                </yAxis>
+                            </BarChart>
+                        </VBox>
+
+                        <!-- 折线图 -->
+                        <VBox spacing="10">
+                            <Label text="最近7天通话统计">
+                                <font>
+                                    <Font name="System Bold" size="14"/>
+                                </font>
+                            </Label>
+                            <LineChart fx:id="dailyCallChart" prefHeight="300">
+                                <xAxis>
+                                    <CategoryAxis fx:id="dailyCallXAxis" label="日期"/>
+                                </xAxis>
+                                <yAxis>
+                                    <NumberAxis fx:id="dailyCallYAxis" label="通话次数"/>
+                                </yAxis>
+                            </LineChart>
+                        </VBox>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- 系统监控面板 -->
+            <Tab text="系统监控">
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+
+                    <!-- 在线用户 -->
+                    <VBox spacing="10" VBox.vgrow="ALWAYS">
+                        <Label text="在线用户">
+                            <font>
+                                <Font name="System Bold" size="14"/>
+                            </font>
+                        </Label>
+                        <TableView fx:id="onlineUsersTableView" prefHeight="250">
+                            <columns>
+                                <TableColumn fx:id="onlineUserIdColumn" text="ID" prefWidth="80"/>
+                                <TableColumn fx:id="onlineUsernameColumn" text="用户名" prefWidth="200"/>
+                                <TableColumn fx:id="onlineStatusColumn" text="状态" prefWidth="100"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+
+                    <!-- 最近通话 -->
+                    <VBox spacing="10" VBox.vgrow="ALWAYS">
+                        <Label text="最近通话记录">
+                            <font>
+                                <Font name="System Bold" size="14"/>
+                            </font>
+                        </Label>
+                        <TableView fx:id="recentCallsTableView" prefHeight="250">
+                            <columns>
+                                <TableColumn fx:id="callIdColumn" text="ID" prefWidth="80"/>
+                                <TableColumn fx:id="callerIdColumn" text="主叫ID" prefWidth="100"/>
+                                <TableColumn fx:id="calleeIdColumn" text="被叫ID" prefWidth="100"/>
+                                <TableColumn fx:id="callTypeColumn" text="类型" prefWidth="100"/>
+                                <TableColumn fx:id="callStatusColumn" text="状态" prefWidth="100"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+
+                    <!-- 系统告警 -->
+                    <VBox spacing="10">
+                        <Label text="系统告警">
+                            <font>
+                                <Font name="System Bold" size="14"/>
+                            </font>
+                        </Label>
+                        <ListView fx:id="systemAlertsListView" prefHeight="150"/>
+                    </VBox>
+                </VBox>
+            </Tab>
+
+        </TabPane>
+    </center>
+
+</BorderPane>

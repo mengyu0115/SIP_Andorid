@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.sip.client.ui.controller.MainController"
+            prefHeight="960.0" prefWidth="1280.0"
+            style="-fx-background-color: #f8f9fa;">
+
+    <!-- 左侧好友列表 -->
+    <left>
+        <VBox prefWidth="280" style="-fx-background-color: #f7f7f7; -fx-border-color: #e5e5e5; -fx-border-width: 0 1 0 0;">
+            <!-- 用户信息头部 -->
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="user-header"
+                  style="-fx-padding: 20; -fx-background-color: #f7f7f7;">
+                <!-- 头像 -->
+                <StackPane prefWidth="50" prefHeight="50" styleClass="avatar-circle"
+                          style="-fx-background-color: #e2e2e2; -fx-background-radius: 25px;">
+                    <Label text="U" style="-fx-text-fill: #666; -fx-font-size: 22px; -fx-font-weight: bold;"/>
+                </StackPane>
+
+                <VBox spacing="6">
+                    <Label fx:id="usernameLabel" text="用户名" styleClass="username-label">
+                        <font>
+                            <Font name="Microsoft YaHei Bold" size="15"/>
+                        </font>
+                    </Label>
+                    <!-- 状态选择器 -->
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label fx:id="statusIndicator" text="●" styleClass="status-indicator" textFill="#00FF00"/>
+                        <ComboBox fx:id="statusComboBox" onAction="#handleStatusChanged"
+                                 prefWidth="110"
+                                 style="-fx-background-color: #e2e2e2; -fx-text-fill: #333; -fx-font-size: 12px;">
+                        </ComboBox>
+                    </HBox>
+                </VBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <MenuButton text="⋮" textFill="#333" styleClass="menu-button">
+                    <items>
+                        <MenuItem text="个人设置" onAction="#handleSettings"/>
+                        <MenuItem text="修改密码" onAction="#handleChangePassword"/>
+                        <SeparatorMenuItem/>
+                        <MenuItem text="退出登录" onAction="#handleLogout"/>
+                    </items>
+                </MenuButton>
+            </HBox>
+
+            <!-- 搜索框 -->
+            <HBox spacing="8" style="-fx-padding: 5 15 15 15;">
+                <TextField fx:id="searchField" promptText="搜索..." HBox.hgrow="ALWAYS"
+                          styleClass="search-field"
+                          prefHeight="38"/>
+                <Button text="+" onAction="#handleAddFriend" styleClass="add-button"
+                       prefWidth="38" prefHeight="38"
+                       style="-fx-background-color: #e2e2e2; -fx-text-fill: #666; -fx-font-size: 20px; -fx-background-radius: 4px; -fx-border-width: 0;"/>
+            </HBox>
+
+            <!-- 好友列表 -->
+            <ListView fx:id="friendListView" VBox.vgrow="ALWAYS" styleClass="friend-list"
+                     style="-fx-background-color: white; -fx-border-width: 0;"/>
+        </VBox>
+    </left>
+
+    <!-- 中间聊天区域 -->
+    <center>
+        <!-- 聊天界面 -->
+        <VBox fx:id="chatArea" style="-fx-background-color: white;">
+            <!-- 聊天头部 -->
+            <HBox fx:id="chatHeader" alignment="CENTER_LEFT" spacing="15" styleClass="chat-header"
+                 style="-fx-padding: 18; -fx-background-color: white; -fx-border-color: #e9ecef; -fx-border-width: 0 0 1 0;">
+                <Label fx:id="chatTitleLabel" text="请选择聊天对象" styleClass="chat-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- 会议按钮组 -->
+                <Button fx:id="createConferenceButton" text="📅 创建会议" onAction="#handleCreateConference" styleClass="tool-btn"
+                       style="-fx-background-color: #e9e9e9; -fx-text-fill: #333; -fx-padding: 10px 20px; -fx-border-width: 0; -fx-background-radius: 4px;"/>
+                <Button fx:id="joinConferenceButton" text="🏢 加入会议" onAction="#handleJoinConference" styleClass="tool-btn"
+                       style="-fx-background-color: #e9e9e9; -fx-text-fill: #333; -fx-padding: 10px 20px; -fx-border-width: 0; -fx-background-radius: 4px;"/>
+                <Button fx:id="callRecordButton" text="📞 通话记录" onAction="#handleCallRecords" styleClass="tool-btn"
+                       style="-fx-background-color: #e9e9e9; -fx-text-fill: #333; -fx-padding: 10px 20px; -fx-border-width: 0; -fx-background-radius: 4px;"/>
+
+                <!-- 工具按钮组 -->
+
+                <!-- 通话按钮 -->
+                <Button fx:id="voiceCallButton" text="📞 语音" onAction="#handleVoiceCall" styleClass="tool-btn"
+                       style="-fx-background-color: transparent; -fx-text-fill: #666; -fx-padding: 10px 24px; -fx-border-width: 0;"/>
+                <Button fx:id="videoCallButton" text="🎥 视频" onAction="#handleVideoCall" styleClass="tool-btn"
+                       style="-fx-background-color: transparent; -fx-text-fill: #666; -fx-padding: 10px 24px; -fx-border-width: 0;"/>
+            </HBox>
+
+                <!-- 消息显示区域 -->
+                <ScrollPane fx:id="messageScrollPane" VBox.vgrow="ALWAYS" fitToWidth="true"
+                           styleClass="message-area"
+                           style="-fx-background-color: #f8f9fa; -fx-border-width: 0;">
+                    <VBox fx:id="messageBox" spacing="15" style="-fx-padding: 20; -fx-background-color: #f8f9fa;"/>
+                </ScrollPane>
+
+                <!-- 消息输入区域 -->
+                <VBox spacing="8" styleClass="input-area"
+                     style="-fx-padding: 15; -fx-background-color: white; -fx-border-color: #e9ecef; -fx-border-width: 1 0 0 0;">
+                    <!-- 工具栏 -->
+                    <HBox spacing="8" style="-fx-padding: 5 0;">
+                        <Button text="😊" styleClass="tool-button"/>
+                        <Button text="📷 图片" onAction="#handleSendImage" styleClass="tool-button"/>
+                        <Button text="📁 文件" onAction="#handleSendFile" styleClass="tool-button"/>
+                    </HBox>
+
+                    <!-- 输入框和发送按钮 -->
+                    <HBox spacing="12">
+                        <TextArea fx:id="messageInputArea" promptText="输入消息 (Enter发送，Shift+Enter换行)..."
+                                 wrapText="true" prefHeight="90"
+                                 HBox.hgrow="ALWAYS" styleClass="text-area"/>
+                        <Button text="发送" onAction="#handleSendMessage" styleClass="send-btn"
+                               style="-fx-background-color: #e9e9e9; -fx-text-fill: #07c160; -fx-border-color: #e0e0e0; -fx-border-radius: 2px; -fx-background-radius: 2px; -fx-pref-width: 100; -fx-pref-height: 90; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+    </center>
+
+</BorderPane>
