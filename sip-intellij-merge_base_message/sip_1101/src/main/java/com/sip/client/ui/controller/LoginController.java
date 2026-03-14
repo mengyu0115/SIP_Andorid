@@ -13,14 +13,19 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.net.*;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * 登录界面控制器
+ *
+ * 配置来源：优先从 ../../config.properties 读取，其次使用默认值
  */
 @Slf4j
 public class LoginController {
@@ -32,10 +37,49 @@ public class LoginController {
 
     private Gson gson = new Gson();
 
-    private static final String DEFAULT_SERVER = "http://10.129.114.129:8081";
-    private static final String SIP_SERVER = "10.129.114.129";
-    private static final int SIP_PORT = 5060;
-    
+    // 从共享配置读取（如果存在）
+    private static final Properties sharedConfig = loadSharedConfig();
+
+    private static final String DEFAULT_SERVER;
+    private static final String SIP_SERVER;
+    private static final int SIP_PORT;
+
+    static {
+        // 从共享配置初始化服务器地址
+        String serverIp = sharedConfig.getProperty("SERVER_IP", "10.129.172.123");
+        int httpPort = Integer.parseInt(sharedConfig.getProperty("HTTP_PORT", "8081"));
+        int sipPort = Integer.parseInt(sharedConfig.getProperty("SIP_PORT", "5060"));
+
+        DEFAULT_SERVER = "http://" + serverIp + ":" + httpPort;
+        SIP_SERVER = serverIp;
+        SIP_PORT = sipPort;
+
+        log.info("📋 使用共享配置:");
+        log.info("   HTTP服务器: {}", DEFAULT_SERVER);
+        log.info("   SIP服务器: {}:{}", SIP_SERVER, SIP_PORT);
+    }
+
+    /**
+     * 加载共享配置文件
+     */
+    private static Properties loadSharedConfig() {
+        Properties props = new Properties();
+        try {
+            File configFile = new File("../../config.properties");
+            if (configFile.exists()) {
+                try (FileInputStream fis = new FileInputStream(configFile)) {
+                    props.load(fis);
+                }
+                log.info("✅ 加载共享配置成功: {}", configFile.getCanonicalPath());
+            } else {
+                log.info("未找到共享配置，使用默认配置");
+            }
+        } catch (Exception e) {
+            log.warn("加载共享配置失败: {}", e.getMessage());
+        }
+        return props;
+    }
+
     // 标志位，防止重复初始化
     private static boolean sipInitialized = false;
     private static final Object initLock = new Object();

@@ -2,6 +2,19 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+// ===== 读取共享配置文件 =====
+def configProps = new Properties()
+def configFile = file('../../config.properties')
+if (configFile.exists()) {
+    configProps.load(new FileInputStream(configFile))
+    println("📋 读取共享配置: SERVER_IP = ${configProps.SERVER_IP}")
+} else {
+    println("⚠️ 警告: 配置文件 ${configFile} 不存在，使用默认值")
+    configProps.SERVER_IP = "10.129.172.123"
+    configProps.HTTP_PORT = "8081"
+    configProps.SIP_PORT = "5060"
+}
+
 android {
     namespace 'com.example.myapplication'
     compileSdk 35
@@ -14,6 +27,11 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // ===== 从共享配置生成 BuildConfig 字段 =====
+        buildConfigField "String", "SERVER_IP", "\"${configProps.SERVER_IP}\""
+        buildConfigField "int", "HTTP_PORT", "${configProps.HTTP_PORT}"
+        buildConfigField "int", "SIP_PORT", "${configProps.SIP_PORT}"
     }
 
     buildTypes {
@@ -28,6 +46,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        buildConfig true  // 启用 BuildConfig 生成
     }
 }
 
@@ -38,6 +57,10 @@ dependencies {
     implementation 'androidx.viewpager2:viewpager2:1.1.0'
     implementation 'androidx.recyclerview:recyclerview:1.4.0'
     implementation 'androidx.fragment:fragment:1.8.6'
+
+    // Glide - 图片加载库
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'

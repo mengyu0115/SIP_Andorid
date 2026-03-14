@@ -67,6 +67,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        // 设置默认服务器IP
+        binding.etServerIp.setText(ServerConfig.DEFAULT_SERVER_IP);
         setupClickListeners();
     }
 

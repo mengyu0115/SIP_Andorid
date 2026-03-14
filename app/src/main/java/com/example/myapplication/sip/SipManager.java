@@ -1,6 +1,7 @@
 package com.example.myapplication.sip;
 
 import android.util.Log;
+import com.example.myapplication.network.ServerConfig;
 
 /**
  * SIP 管理器 — 外观/门面（Facade）
@@ -18,17 +19,20 @@ import android.util.Log;
  *   SipRegisterManager.java → SipRegisterHandler
  *   SipMessageManager.java  → SipMessageHandler
  *   SipCallManager.java     → 未来扩展 SipCallHandler
+ *
+ * ===== 服务器IP配置统一管理 =====
+ * SIP服务器IP从 ServerConfig 读取（最终来源：../../config.properties）
+ * 修改IP只需编辑 config.properties，然后 Sync Gradle 并 Rebuild 即可
  */
 public class SipManager {
 
     private static final String TAG = "SipManager";
 
-    // SIP 服务器默认值（可被 register() 动态覆盖）
-    public static final String DEFAULT_SIP_SERVER = "10.129.114.129";
-    public static final int SIP_SERVER_PORT = 5060;
+    // SIP 服务器配置（从 ServerConfig 统一读取）
+    public static final int SIP_SERVER_PORT = ServerConfig.SIP_PORT;
 
-    // 当前实际使用的 SIP 服务器地址
-    private String sipServer = DEFAULT_SIP_SERVER;
+    // 当前实际使用的 SIP 服务器地址（默认从 ServerConfig 读取，可被 register() 动态覆盖）
+    private String sipServer = ServerConfig.DEFAULT_SERVER_IP;
 
     // ===== 单例 =====
     private static volatile SipManager instance;
@@ -103,7 +107,7 @@ public class SipManager {
 
     public void register(String username, String password, String domain) {
         // 动态设置 SIP 服务器地址（使用登录页输入的 serverIp）
-        this.sipServer = (domain != null && !domain.isEmpty()) ? domain : DEFAULT_SIP_SERVER;
+        this.sipServer = (domain != null && !domain.isEmpty()) ? domain : ServerConfig.DEFAULT_SERVER_IP;
         Log.i(TAG, "SIP 服务器地址: " + sipServer + ":" + SIP_SERVER_PORT);
 
         // 延迟初始化 Handler（首次或 SIP 服务器地址变化时重建）

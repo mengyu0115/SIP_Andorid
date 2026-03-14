@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,8 +29,36 @@ public class FileService {
     @Autowired
     private FileInfoMapper fileInfoMapper;
 
-    @Value("${file.upload-dir:C:/sip_uploads}")
+    @Value("${file.upload-dir:./uploads}")
     private String uploadDir;
+
+    /**
+     * 初始化时将相对路径转换为绝对路径
+     * 避免 Tomcat 工作目录导致的路径问题
+     */
+    @PostConstruct
+    public void init() {
+        try {
+            Path path = Paths.get(uploadDir);
+            // 如果是相对路径，转换为绝对路径
+            if (!path.isAbsolute()) {
+                path = Paths.get(System.getProperty("user.dir"), uploadDir).toAbsolutePath().normalize();
+                uploadDir = path.toString();
+                log.info("转换相对路径为绝对路径: ./uploads -> {}", uploadDir);
+            }
+
+            // 确保上传目录存在
+            File dir = new File(uploadDir);
+            if (!dir.exists()) {
+                dir.mkdirs();
+                log.info("创建上传根目录: {}", uploadDir);
+            }
+
+            log.info("文件上传目录: {}", uploadDir);
+        } catch (Exception e) {
+            log.error("初始化文件上传目录失败", e);
+        }
+    }
 
     public FileInfo upload(MultipartFile file, String fileType, Long userId) {
         try {

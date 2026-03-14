@@ -3,9 +3,12 @@ package com.sip.server.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * 消息实体类
@@ -71,5 +74,19 @@ public class Message {
     /**
      * 发送时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime sendTime;
+
+    /**
+     * 获取时间戳（毫秒）
+     * 用于客户端直接显示，避免时区转换问题
+     */
+    @JsonProperty("timestamp")
+    public long getTimestamp() {
+        if (sendTime == null) {
+            return System.currentTimeMillis();
+        }
+        // 将LocalDateTime转换为毫秒时间戳
+        return sendTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    }
 }

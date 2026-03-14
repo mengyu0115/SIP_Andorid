@@ -158,7 +158,6 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:hint="服务器 IP"
-                    android:text="10.29.209.85"
                     android:textColorHint="#CCCCCC"
                     android:textColor="#1A1A1A"
                     android:textSize="15sp"

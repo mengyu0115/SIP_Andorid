@@ -6,31 +6,103 @@
     android:layout_height="wrap_content"
     android:padding="8dp">
 
-    <!-- 消息气泡（右对齐） -->
-    <TextView
-        android:id="@+id/tvMessage"
+    <!-- 消息内容容器（右对齐） -->
+    <LinearLayout
+        android:id="@+id/messageContentContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:layout_marginStart="64dp"
-        android:background="#1E88E5"
-        android:padding="12dp"
-        android:textColor="@android:color/white"
-        android:textSize="16sp"
-        android:maxWidth="260dp"
-        tools:text="这是我发送的消息内容"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <!-- 时间戳（右对齐） -->
-    <TextView
-        android:id="@+id/tvTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:textSize="12sp"
-        android:textColor="#999999"
-        tools:text="15:30"
-        app:layout_constraintEnd_toEndOf="@id/tvMessage"
-        app:layout_constraintTop_toBottomOf="@id/tvMessage" />
+        <!-- 文字消息气泡 -->
+        <TextView
+            android:id="@+id/tvMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#1E88E5"
+            android:padding="12dp"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:maxWidth="260dp"
+            android:visibility="gone"
+            tools:text="这是我发送的消息内容"
+            tools:visibility="visible" />
+
+        <!-- 图片消息 -->
+        <ImageView
+            android:id="@+id/ivMessageImage"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
+            android:background="@drawable/image_border"
+            android:visibility="gone" />
+
+        <!-- 文件消息容器 -->
+        <LinearLayout
+            android:id="@+id/fileContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#F5F5F5"
+            android:padding="12dp"
+            android:visibility="gone">
+
+            <!-- 文件图标 -->
+            <ImageView
+                android:id="@+id/ivFileIcon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@android:drawable/ic_menu_save"
+                android:background="@drawable/file_icon_bg"
+                android:padding="6dp" />
+
+            <!-- 文件信息 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:orientation="vertical">
+
+                <!-- 文件名 -->
+                <TextView
+                    android:id="@+id/tvFileName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="文件名.pdf"
+                    android:textSize="14sp"
+                    android:textColor="#333333"
+                    android:ellipsize="end"
+                    android:maxWidth="150dp"
+                    android:maxLines="2" />
+
+                <!-- 文件大小 -->
+                <TextView
+                    android:id="@+id/tvFileSize"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="1.2 MB"
+                    android:textSize="12sp"
+                    android:textColor="#999999" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 时间戳 -->
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="12sp"
+            android:textColor="#999999"
+            tools:text="03-12 15:30" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -107,6 +107,21 @@
         android:padding="8dp"
         app:layout_constraintBottom_toTopOf="@id/emojiPanel">
 
+        <!-- 语音/键盘切换按钮 -->
+        <ImageView
+            android:id="@+id/btnVoiceToggle"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:padding="6dp"
+            android:src="@android:drawable/ic_btn_speak_now"
+            android:tint="#666666"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
         <!-- 表情按钮 -->
         <TextView
             android:id="@+id/btnEmoji"
@@ -118,7 +133,7 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btnVoiceToggle"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
@@ -137,13 +152,13 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
-        <!-- 文件按钮 -->
+        <!-- 视频按钮 -->
         <ImageView
-            android:id="@+id/btnFile"
+            android:id="@+id/btnVideo"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:padding="6dp"
-            android:src="@android:drawable/ic_menu_add"
+            android:src="@android:drawable/ic_lock_idle_lock"
             android:tint="#666666"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:clickable="true"
@@ -167,7 +182,25 @@
             android:maxLines="4"
             android:textSize="15sp"
             android:inputType="textMultiLine"
-            app:layout_constraintStart_toEndOf="@id/btnFile"
+            app:layout_constraintStart_toEndOf="@id/btnVideo"
+            app:layout_constraintEnd_toStartOf="@id/btnSend"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <!-- 语音按住说话按钮 -->
+        <Button
+            android:id="@+id/btnVoiceRecord"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="8dp"
+            android:minHeight="48dp"
+            android:text="按住说话"
+            android:textSize="15sp"
+            android:backgroundTint="#F5F5F5"
+            android:textColor="#666666"
+            android:visibility="gone"
+            app:layout_constraintStart_toEndOf="@id/btnVideo"
             app:layout_constraintEnd_toStartOf="@id/btnSend"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />

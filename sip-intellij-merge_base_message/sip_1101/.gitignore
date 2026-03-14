@@ -39,3 +39,7 @@ client2.txt
 # Temporary files
 *.tmp
 *~
+
+# ===== 重要：忽略上传的文件 =====
+# 避免将用户上传的图片/文件提交到 Git 仓库
+uploads/

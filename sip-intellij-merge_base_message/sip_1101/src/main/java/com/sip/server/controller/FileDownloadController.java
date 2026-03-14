@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,8 +30,27 @@ import java.nio.file.Paths;
 @RequestMapping("/files")
 public class FileDownloadController {
 
-    @Value("${file.upload-dir:C:/sip_uploads}")
+    @Value("${file.upload-dir:./uploads}")
     private String uploadDir;
+
+    /**
+     * 初始化时将相对路径转换为绝对路径
+     */
+    @PostConstruct
+    public void init() {
+        try {
+            Path path = Paths.get(uploadDir);
+            // 如果是相对路径，转换为绝对路径
+            if (!path.isAbsolute()) {
+                path = Paths.get(System.getProperty("user.dir"), uploadDir).toAbsolutePath().normalize();
+                uploadDir = path.toString();
+                log.info("FileDownloadController: 转换相对路径为绝对路径: ./uploads -> {}", uploadDir);
+            }
+            log.info("FileDownloadController: 文件下载目录: {}", uploadDir);
+        } catch (Exception e) {
+            log.error("初始化文件下载目录失败", e);
+        }
+    }
 
     /**
      * 下载文件

@@ -3,11 +3,19 @@ package com.sip.client.config;
 import lombok.extern.slf4j.Slf4j;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.Properties;
 
 /**
- * SIP 配置管理类 - 统一从 application.yml 读取配置
+ * SIP 配置管理类 - 优先读取共享配置文件
+ *
+ * 配置读取优先级:
+ * 1. ../../config.properties (项目根目录的共享配置)
+ * 2. application.yml (Spring Boot 配置文件)
+ * 3. 硬编码默认值
  *
  * 使用方式:
  * - String sipHost = SipConfig.getSipServerHost();
@@ -15,11 +23,11 @@ import java.util.Map;
  *
  * 优点:
  * - 集中管理所有配置
- * - 换机器只需修改 application.yml 一处
- * - 避免硬编码IP地址
+ * - 换机器只需修改 ../../config.properties 一处
+ * - 避免 IP 地址不一致问题
  *
  * @author SIP Team
- * @version 1.0
+ * @version 2.0
  */
 @Slf4j
 public class SipConfig {
@@ -27,15 +35,52 @@ public class SipConfig {
     private static final String CONFIG_FILE = "application.yml";
     private static Map<String, Object> config;
 
+    // 共享配置（从 ../../config.properties 读取）
+    private static String sharedServerIp = null;
+    private static Integer sharedHttpPort = null;
+    private static Integer sharedSipPort = null;
+
     // 默认值（防止配置文件读取失败）
-    private static final String DEFAULT_SIP_HOST = "10.129.114.129";
+    private static final String DEFAULT_SIP_HOST = "10.129.172.123";
     private static final int DEFAULT_SIP_PORT = 5060;
     private static final String DEFAULT_SIP_DOMAIN = "myvoipapp.com";
     private static final String DEFAULT_HTTP_HOST = "localhost";
     private static final int DEFAULT_HTTP_PORT = 8081;
 
     static {
-        loadConfig();
+        loadSharedConfig();  // 先加载共享配置
+        loadConfig();        // 再加载 YAML 配置
+    }
+
+    /**
+     * 加载共享配置文件 (../../config.properties)
+     */
+    private static void loadSharedConfig() {
+        try {
+            // 查找项目根目录的 config.properties
+            File sharedConfigFile = new File("../../config.properties");
+            if (sharedConfigFile.exists()) {
+                log.info("📋 发现共享配置文件: {}", sharedConfigFile.getCanonicalPath());
+
+                Properties props = new Properties();
+                try (FileInputStream fis = new FileInputStream(sharedConfigFile)) {
+                    props.load(fis);
+                }
+
+                sharedServerIp = props.getProperty("SERVER_IP");
+                sharedHttpPort = Integer.parseInt(props.getProperty("HTTP_PORT", "8081"));
+                sharedSipPort = Integer.parseInt(props.getProperty("SIP_PORT", "5060"));
+
+                log.info("✅ 共享配置加载成功:");
+                log.info("   SERVER_IP: {}", sharedServerIp);
+                log.info("   HTTP_PORT: {}", sharedHttpPort);
+                log.info("   SIP_PORT: {}", sharedSipPort);
+            } else {
+                log.info("未找到共享配置文件，将使用 application.yml 配置");
+            }
+        } catch (Exception e) {
+            log.warn("加载共享配置失败，将使用默认配置: {}", e.getMessage());
+        }
     }
 
     /**
@@ -88,17 +133,27 @@ public class SipConfig {
     // ========== SIP 服务器配置 ==========
 
     /**
-     * 获取 SIP 服务器地址
+     * 获取 SIP 服务器地址（优先使用共享配置）
      */
     public static String getSipServerHost() {
+        // 1. 优先使用共享配置
+        if (sharedServerIp != null) {
+            return sharedServerIp;
+        }
+        // 2. 其次使用 application.yml 配置
         String host = getNestedValue("sip", "server", "host");
         return host != null ? host : DEFAULT_SIP_HOST;
     }
 
     /**
-     * 获取 SIP 服务器端口
+     * 获取 SIP 服务器端口（优先使用共享配置）
      */
     public static int getSipServerPort() {
+        // 1. 优先使用共享配置
+        if (sharedSipPort != null) {
+            return sharedSipPort;
+        }
+        // 2. 其次使用 application.yml 配置
         Integer port = getNestedValue("sip", "server", "port");
         return port != null ? port : DEFAULT_SIP_PORT;
     }
