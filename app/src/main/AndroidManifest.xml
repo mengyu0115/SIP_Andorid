@@ -13,6 +13,10 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
+    <!-- 屏幕共享 (MediaProjection 需要前台服务) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+
     <!-- 存储权限（用于下载文件） -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
@@ -64,6 +68,19 @@
             android:label="通话"
             android:screenOrientation="portrait"
             android:launchMode="singleTop" />
+
+        <!-- 会议页面 -->
+        <activity
+            android:name=".ConferenceActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:launchMode="singleTop" />
+
+        <!-- 屏幕共享前台服务 -->
+        <service
+            android:name=".conference.ScreenShareService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
 
         <!-- FileProvider 用于分享下载的文件 -->
         <provider

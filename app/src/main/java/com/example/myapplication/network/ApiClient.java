@@ -212,6 +212,101 @@ public class ApiClient {
 
     // ===== 底层 HTTP 工具 =====
 
+    // ===== 会议模块 =====
+
+    /**
+     * 创建会议
+     * POST /api/conference/create
+     * Body: {"creatorId": 1, "title": "xxx"}
+     */
+    public static String createConference(String title) {
+        try {
+            JSONObject body = new JSONObject();
+            body.put("creatorId", ServerConfig.getCurrentUserId());
+            body.put("title", title);
+            return postJson(
+                    ServerConfig.getBaseUrl() + "/api/conference/create",
+                    body.toString(),
+                    ServerConfig.getAuthToken()
+            );
+        } catch (Exception e) {
+            Log.e(TAG, "createConference failed", e);
+            return null;
+        }
+    }
+
+    /**
+     * 通过6位码加入会议
+     * POST /api/conference/join
+     * Body: {"conferenceCode": "123456", "userId": 1}
+     */
+    public static String joinConference(String conferenceCode) {
+        try {
+            JSONObject body = new JSONObject();
+            body.put("conferenceCode", conferenceCode);
+            body.put("userId", ServerConfig.getCurrentUserId());
+            return postJson(
+                    ServerConfig.getBaseUrl() + "/api/conference/join",
+                    body.toString(),
+                    ServerConfig.getAuthToken()
+            );
+        } catch (Exception e) {
+            Log.e(TAG, "joinConference failed", e);
+            return null;
+        }
+    }
+
+    /**
+     * 获取会议详情
+     * GET /api/conference/{id}
+     */
+    public static String getConference(Long conferenceId) {
+        try {
+            return getJson(
+                    ServerConfig.getBaseUrl() + "/api/conference/" + conferenceId,
+                    ServerConfig.getAuthToken()
+            );
+        } catch (Exception e) {
+            Log.e(TAG, "getConference failed", e);
+            return null;
+        }
+    }
+
+    /**
+     * 结束会议
+     * POST /api/conference/{id}/end
+     */
+    public static String endConference(Long conferenceId) {
+        try {
+            return postJson(
+                    ServerConfig.getBaseUrl() + "/api/conference/" + conferenceId + "/end",
+                    "{}",
+                    ServerConfig.getAuthToken()
+            );
+        } catch (Exception e) {
+            Log.e(TAG, "endConference failed", e);
+            return null;
+        }
+    }
+
+    /**
+     * 获取用户的会议列表
+     * GET /api/conference/user/{userId}
+     */
+    public static String getUserConferences(Long userId) {
+        try {
+            return getJson(
+                    ServerConfig.getBaseUrl() + "/api/conference/user/" + userId,
+                    ServerConfig.getAuthToken()
+            );
+        } catch (Exception e) {
+            Log.e(TAG, "getUserConferences failed", e);
+            return null;
+        }
+    }
+
+    // ===== 底层 HTTP 工具（原有） =====
+
     /**
      * 发起 POST JSON 请求，返回原始响应字符串
      */

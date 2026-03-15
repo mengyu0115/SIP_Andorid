@@ -26,7 +26,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/sip?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true
     username: root
-    password: 1234  # 数据库密码
+    password: 123456  # 数据库密码
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 10
@@ -71,9 +71,9 @@ mybatis-plus:
 sip:
   # MSS (MiniSipServer) 服务器配置
   server:
-    host: 10.129.172.123       # MSS服务器地址(当前主机)
+    host: 10.29.248.170       # MSS服务器地址(当前主机)
     port: 5060
-    domain: 10.129.172.123     # SIP域名
+    domain: 10.29.248.170     # SIP域名
 
   # 本地配置
   local:
@@ -148,7 +148,7 @@ file:
   # 3. 便于管理（文件跟随项目，清理方便）
   upload-dir: ./uploads
   # 文件访问URL前缀
-  base-url: http://10.129.172.123:8081/files
+  base-url: http://10.29.248.170:8081/files
   # 允许的文件类型
   allowed-types:
     - image/jpeg

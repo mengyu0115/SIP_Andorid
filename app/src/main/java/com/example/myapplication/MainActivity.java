@@ -85,6 +85,9 @@ public class MainActivity extends AppCompatActivity
                         binding.bottomNav.setSelectedItemId(R.id.nav_contacts);
                         break;
                     case 2:
+                        binding.bottomNav.setSelectedItemId(R.id.nav_conference);
+                        break;
+                    case 3:
                         binding.bottomNav.setSelectedItemId(R.id.nav_profile);
                         break;
                 }
@@ -101,8 +104,11 @@ public class MainActivity extends AppCompatActivity
             } else if (id == R.id.nav_contacts) {
                 binding.viewPager.setCurrentItem(1, false);
                 return true;
-            } else if (id == R.id.nav_profile) {
+            } else if (id == R.id.nav_conference) {
                 binding.viewPager.setCurrentItem(2, false);
+                return true;
+            } else if (id == R.id.nav_profile) {
+                binding.viewPager.setCurrentItem(3, false);
                 return true;
             }
             return false;
