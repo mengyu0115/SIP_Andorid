@@ -1,0 +1,212 @@
+package com.sip.ui.controller;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.sip.core.SipManager;
+import com.sip.register.SipRegisterManager;
+import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.stage.Stage;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 登录界面控制器
+ */
+@Slf4j
+public class LoginController {
+
+    @FXML private TextField usernameField;
+    @FXML private PasswordField passwordField;
+    @FXML private Button loginButton;
+    @FXML private Label statusLabel;
+
+    private Gson gson = new Gson();
+
+    private static final String DEFAULT_SERVER = "http://localhost:8081";
+    private static final String SIP_SERVER = "10.129.114.129";
+    private static final int SIP_PORT = 5060;
+
+    // 新增：标志位和锁，确保 SipRegisterManager 只初始化一次
+    private static final Object lock = new Object();
+    private static boolean sipRegisterInitialized = false;
+
+    @FXML
+    public void initialize() {
+        log.info("登录界面初始化完成");
+        log.info("后端服务器: {}", DEFAULT_SERVER);
+        log.info("SIP服务器: {}:{}", SIP_SERVER, SIP_PORT);
+    }
+
+    @FXML
+    private void handleLogin() {
+        String username = usernameField.getText().trim();
+        String password = passwordField.getText().trim();
+
+        if (username.isEmpty() || password.isEmpty()) {
+            showStatus("用户名和密码不能为空", true);
+            return;
+        }
+
+        loginButton.setDisable(true);
+        showStatus("正在登录...", false);
+
+        new Thread(() -> {
+            try {
+                // 调用后端登录API
+                Map<String, Object> loginResult = callLoginAPI(DEFAULT_SERVER, username, password);
+
+                if (loginResult == null) {
+                    Platform.runLater(() -> {
+                        showStatus("登录失败：服务器无响应", true);
+                        loginButton.setDisable(false);
+                    });
+                    return;
+                }
+
+                Map<String, Object> userData = (Map<String, Object>) loginResult.get("user");
+                String sipUri = (String) userData.get("sipUri");
+                String sipPassword = (String) userData.get("sipPassword");
+                String sipUsername = sipUri.split("@")[0].replace("sip:", "");
+
+                log.info("登录成功：{}, SIP URI: {}", username, sipUri);
+
+                // 初始化 SIP 核心
+                SipManager sipManager = SipManager.getInstance();
+                sipManager.initialize("0.0.0.0", 5061 + (int)(Math.random() * 1000));
+
+                // 初始化注册器，只初始化一次
+                SipRegisterManager registerManager = SipRegisterManager.getInstance();
+                synchronized (lock) {
+                    if (!sipRegisterInitialized) {
+                        registerManager.initialize("0.0.0.0", sipManager.getLocalPort());
+                        sipRegisterInitialized = true;
+                    }
+                }
+
+                // 设置回调
+                registerManager.setCallback(new SipRegisterManager.RegisterCallback() {
+                    @Override
+                    public void onRegisterSuccess() {
+                        log.info("SIP注册成功");
+                        Platform.runLater(() -> {
+                            try {
+                                openMainWindow(username, sipUsername, userData);
+                            } catch (Exception e) {
+                                log.error("打开主界面失败", e);
+                                showStatus("打开主界面失败", true);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onRegisterFailed(String reason) {
+                        log.error("SIP注册失败: {}", reason);
+                        Platform.runLater(() -> {
+                            showStatus("SIP注册失败: " + reason, true);
+                            loginButton.setDisable(false);
+                        });
+                    }
+
+                    @Override
+                    public void onUnregisterSuccess() {
+                        log.info("SIP注销成功");
+                    }
+                });
+
+                Platform.runLater(() -> showStatus("正在注册到SIP服务器...", false));
+                registerManager.register(sipUsername, sipPassword, SIP_SERVER);
+
+            } catch (Exception e) {
+                log.error("登录失败", e);
+                Platform.runLater(() -> {
+                    showStatus("登录失败: " + e.getMessage(), true);
+                    loginButton.setDisable(false);
+                });
+            }
+        }).start();
+    }
+
+    /**
+     * 调用登录API
+     */
+    private Map<String, Object> callLoginAPI(String serverUrl, String username, String password) {
+        try {
+            URL url = new URL(serverUrl + "/api/user/login");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+
+            // 构造请求体
+            Map<String, String> requestBody = new HashMap<>();
+            requestBody.put("username", username);
+            requestBody.put("password", password);
+
+            // 发送请求
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(gson.toJson(requestBody).getBytes("UTF-8"));
+            }
+
+            // 读取响应
+            int responseCode = conn.getResponseCode();
+            if (responseCode == 200) {
+                java.io.InputStream is = conn.getInputStream();
+                String response = new String(is.readAllBytes(), "UTF-8");
+
+                JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
+                if (jsonResponse.get("code").getAsInt() == 200) {
+                    return gson.fromJson(jsonResponse.get("data"), Map.class);
+                } else {
+                    log.error("登录失败: {}", jsonResponse.get("message").getAsString());
+                    return null;
+                }
+            } else {
+                log.error("HTTP请求失败: {}", responseCode);
+                return null;
+            }
+
+        } catch (Exception e) {
+            log.error("调用登录API失败", e);
+            return null;
+        }
+    }
+
+    /**
+     * 打开主界面
+     */
+    private void openMainWindow(String username, String sipUsername, Map<String, Object> userData) throws Exception {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
+        Parent root = loader.load();
+
+        // 获取MainController并传递数据
+        MainController mainController = loader.getController();
+        mainController.setUserData(username, sipUsername, userData);
+
+        // 创建新窗口
+        Stage stage = new Stage();
+        stage.setTitle("SIP 即时通信系统 - " + username);
+        stage.setScene(new Scene(root, 800, 600));
+        stage.show();
+
+        // 关闭登录窗口
+        Stage loginStage = (Stage) loginButton.getScene().getWindow();
+        loginStage.close();
+    }
+
+    private void showStatus(String message, boolean isError) {
+        if (statusLabel != null) {
+            statusLabel.setText(message);
+            statusLabel.setStyle(isError ? "-fx-text-fill: red;" : "-fx-text-fill: green;");
+        }
+    }
+}

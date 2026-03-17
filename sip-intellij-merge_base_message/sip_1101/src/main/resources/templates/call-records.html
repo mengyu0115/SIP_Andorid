@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通话记录管理 - SIP IM 系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .back-button:hover {
+            background: #5568d3;
+        }
+
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filters label {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .filters input, .filters select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .filters button {
+            padding: 8px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .filters button:hover {
+            background: #5568d3;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .table-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+            color: #555;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .call-type {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .call-type-audio {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .call-type-video {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .duration {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .pagination button {
+            padding: 8px 15px;
+            margin: 0 5px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #5568d3;
+        }
+
+        .pagination button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            margin: 0 10px;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>📞 通话记录管理</h1>
+            <div class="header-actions">
+                <a href="/view/dashboard" class="back-button">← 返回控制台</a>
+                <div>
+                    <span id="totalRecords">总记录数: 0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <h3 id="totalCount">0</h3>
+                <p>总通话数</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="audioCount">0</h3>
+                <p>音频通话</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="videoCount">0</h3>
+                <p>视频通话</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="avgDuration">0s</h3>
+                <p>平均时长</p>
+            </div>
+        </div>
+
+        <!-- 筛选器 -->
+        <div class="filters">
+            <label>用户ID:</label>
+            <input type="number" id="userIdFilter" placeholder="输入用户ID">
+
+            <label>通话类型:</label>
+            <select id="callTypeFilter">
+                <option value="">全部</option>
+                <option value="1">音频</option>
+                <option value="2">视频</option>
+            </select>
+
+            <button onclick="loadCallRecords()">🔍 查询</button>
+            <button onclick="resetFilters()">🔄 重置</button>
+        </div>
+
+        <!-- 表格 -->
+        <div class="table-container">
+            <div id="loading" class="loading" style="display:none;">
+                <p>⏳ 加载中...</p>
+            </div>
+            <div id="noData" class="no-data" style="display:none;">
+                <p>📭 暂无通话记录</p>
+            </div>
+            <table id="recordsTable" style="display:none;">
+                <thead>
+                    <tr>
+                        <th>记录ID</th>
+                        <th>主叫ID</th>
+                        <th>被叫ID</th>
+                        <th>通话类型</th>
+                        <th>开始时间</th>
+                        <th>结束时间</th>
+                        <th>通话时长</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+                <tbody id="recordsBody">
+                </tbody>
+            </table>
+
+            <!-- 分页 -->
+            <div class="pagination" id="pagination" style="display:none;">
+                <button id="prevBtn" onclick="previousPage()">上一页</button>
+                <span id="pageInfo">第 1 页，共 1 页</span>
+                <button id="nextBtn" onclick="nextPage()">下一页</button>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="footer">
+            <p>&copy; 2025 SIP IM 系统 - 通话记录管理</p>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let pageSize = 10;
+        let totalPages = 1;
+        let currentUserId = null;
+        let currentCallType = null;
+
+        // 页面加载时获取数据
+        window.onload = function() {
+            loadCallRecords();
+        };
+
+        // 加载通话记录
+        function loadCallRecords() {
+            const userId = document.getElementById('userIdFilter').value;
+            const callType = document.getElementById('callTypeFilter').value;
+
+            currentUserId = userId || null;
+            currentCallType = callType || null;
+            currentPage = 1; // 重置到第一页
+
+            fetchRecords();
+        }
+
+        // 获取记录
+        function fetchRecords() {
+            // 显示加载状态
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('noData').style.display = 'none';
+            document.getElementById('recordsTable').style.display = 'none';
+            document.getElementById('pagination').style.display = 'none';
+
+            // 构建URL
+            let url = `/api/call/records?pageNum=${currentPage}&pageSize=${pageSize}`;
+            if (currentUserId) {
+                url += `&userId=${currentUserId}`;
+            }
+
+            // 发送请求
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loading').style.display = 'none';
+
+                    if (data.code === 200 && data.data && data.data.records) {
+                        const records = data.data.records;
+                        const total = data.data.total;
+                        totalPages = data.data.pages;
+
+                        if (records.length === 0) {
+                            document.getElementById('noData').style.display = 'block';
+                        } else {
+                            displayRecords(records);
+                            updatePagination(total);
+                            updateStatistics(records);
+                        }
+                    } else {
+                        document.getElementById('noData').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('获取通话记录失败:', error);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('noData').style.display = 'block';
+                    alert('获取通话记录失败: ' + error.message);
+                });
+        }
+
+        // 显示记录
+        function displayRecords(records) {
+            const tbody = document.getElementById('recordsBody');
+            tbody.innerHTML = '';
+
+            records.forEach(record => {
+                const row = tbody.insertRow();
+
+                // 记录ID
+                row.insertCell().textContent = record.id;
+
+                // 主叫ID
+                row.insertCell().textContent = record.callerId;
+
+                // 被叫ID
+                row.insertCell().textContent = record.calleeId;
+
+                // 通话类型
+                const typeCell = row.insertCell();
+                const typeSpan = document.createElement('span');
+                typeSpan.className = record.callType === 1 ? 'call-type call-type-audio' : 'call-type call-type-video';
+                typeSpan.textContent = record.callType === 1 ? '🎙️ 音频' : '📹 视频';
+                typeCell.appendChild(typeSpan);
+
+                // 开始时间
+                row.insertCell().textContent = formatDateTime(record.startTime);
+
+                // 结束时间
+                row.insertCell().textContent = formatDateTime(record.endTime);
+
+                // 通话时长
+                const durationCell = row.insertCell();
+                durationCell.className = 'duration';
+                durationCell.textContent = formatDuration(record.duration);
+
+                // 状态
+                const statusCell = row.insertCell();
+                statusCell.textContent = getStatusText(record.status);
+            });
+
+            document.getElementById('recordsTable').style.display = 'table';
+        }
+
+        // 更新分页
+        function updatePagination(total) {
+            document.getElementById('totalRecords').textContent = `总记录数: ${total}`;
+            document.getElementById('pageInfo').textContent = `第 ${currentPage} 页，共 ${totalPages} 页`;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
+            document.getElementById('pagination').style.display = 'block';
+        }
+
+        // 更新统计
+        function updateStatistics(records) {
+            let audioCount = 0;
+            let videoCount = 0;
+            let totalDuration = 0;
+
+            records.forEach(record => {
+                if (record.callType === 1) audioCount++;
+                if (record.callType === 2) videoCount++;
+                totalDuration += record.duration || 0;
+            });
+
+            document.getElementById('totalCount').textContent = records.length;
+            document.getElementById('audioCount').textContent = audioCount;
+            document.getElementById('videoCount').textContent = videoCount;
+
+            const avgDuration = records.length > 0 ? Math.round(totalDuration / records.length) : 0;
+            document.getElementById('avgDuration').textContent = avgDuration + 's';
+        }
+
+        // 上一页
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                fetchRecords();
+            }
+        }
+
+        // 下一页
+        function nextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                fetchRecords();
+            }
+        }
+
+        // 重置筛选器
+        function resetFilters() {
+            document.getElementById('userIdFilter').value = '';
+            document.getElementById('callTypeFilter').value = '';
+            currentUserId = null;
+            currentCallType = null;
+            currentPage = 1;
+            fetchRecords();
+        }
+
+        // 格式化日期时间
+        function formatDateTime(dateTimeStr) {
+            if (!dateTimeStr) return '-';
+            // 假设格式为 "2025-12-19T10:30:00"
+            const date = new Date(dateTimeStr);
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // 格式化时长
+        function formatDuration(seconds) {
+            if (!seconds) return '0s';
+
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+
+            if (hours > 0) {
+                return `${hours}h ${minutes}m ${secs}s`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${secs}s`;
+            } else {
+                return `${secs}s`;
+            }
+        }
+
+        // 获取状态文本
+        function getStatusText(status) {
+            const statusMap = {
+                1: '✅ 成功',
+                2: '❌ 未接',
+                3: '🚫 拒绝',
+                4: '⭕ 取消',
+                5: '⚠️ 失败'
+            };
+            return statusMap[status] || '未知';
+        }
+    </script>
+</body>
+</html>

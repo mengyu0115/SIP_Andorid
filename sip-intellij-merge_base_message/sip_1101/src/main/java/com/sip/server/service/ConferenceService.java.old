@@ -1,0 +1,499 @@
+package com.sip.server.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.sip.common.dto.ConferenceDTO;
+import com.sip.common.dto.ParticipantDTO;
+import com.sip.common.enums.ConferenceStatus;
+import com.sip.common.enums.ParticipantRole;
+// ⚠️ 暂时注释掉客户端依赖 - 服务器端不应该依赖客户端代码
+// import com.sip.client.conference.ConferenceManager;
+import com.sip.server.controller.ConferenceController.*;
+import com.sip.server.entity.Conference;
+import com.sip.server.entity.ConferenceParticipant;
+import com.sip.server.entity.User;
+import com.sip.server.mapper.ConferenceMapper;
+import com.sip.server.mapper.ConferenceParticipantMapper;
+import com.sip.server.mapper.UserMapper;
+// ⚠️ 暂时注释掉 - ConferenceWebSocketHandler 不存在
+// import com.sip.server.websocket.ConferenceWebSocketHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * 会议服务层
+ *
+ * 实现会议相关的业务逻辑
+ *
+ * ⚠️ 暂时禁用 - 该类依赖客户端代码，需要重构
+ *
+ * @author SIP Team - Member 4
+ * @version 1.0
+ */
+// @Service  // ⚠️ 暂时注释掉，避免Spring尝试注入不存在的依赖
+public class ConferenceService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ConferenceService.class);
+
+    // ⚠️ 暂时注释掉客户端依赖 - 服务器端不应该依赖客户端代码
+    // @Autowired
+    // private ConferenceManager conferenceManager;
+
+    @Autowired
+    private ConferenceMapper conferenceMapper;
+
+    @Autowired
+    private ConferenceParticipantMapper participantMapper;
+
+    @Autowired
+    private UserMapper userMapper;
+
+    // ⚠️ 暂时注释掉 - ConferenceWebSocketHandler 不存在
+    // @Autowired
+    // private ConferenceWebSocketHandler webSocketHandler;
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    /**
+     * 创建会议
+     *
+     * @param creatorId 创建者ID
+     * @param title 会议标题
+     * @param maxParticipants 最大参与人数
+     * @return 会议信息
+     */
+    @Transactional
+    public ConferenceDTO createConference(Long creatorId, String title, Integer maxParticipants) {
+        logger.info("创建会议: creatorId={}, title={}, maxParticipants={}", creatorId, title, maxParticipants);
+
+        // 调用 ConferenceManager 创建会议
+        String conferenceUri = conferenceManager.createConference(creatorId, title, maxParticipants);
+
+        // 获取会议信息
+        ConferenceDTO conferenceDTO = conferenceManager.getConferenceInfo(conferenceUri);
+
+        logger.info("会议创建成功: conferenceUri={}", conferenceUri);
+
+        return conferenceDTO;
+    }
+
+    /**
+     * 加入会议
+     *
+     * @param conferenceId 会议ID
+     * @param userId 用户ID
+     * @return 加入结果
+     */
+    @Transactional
+    public JoinConferenceResponse joinConference(Long conferenceId, Long userId) {
+        logger.info("用户加入会议: conferenceId={}, userId={}", conferenceId, userId);
+
+        JoinConferenceResponse response = new JoinConferenceResponse();
+
+        // 获取会议
+        Conference conference = conferenceMapper.selectById(conferenceId);
+        if (conference == null) {
+            response.setSuccess(false);
+            response.setErrorCode(6001);
+            response.setErrorMessage("会议不存在");
+            return response;
+        }
+
+        // 检查会议状态
+        if (!ConferenceStatus.IN_PROGRESS.getCode().equals(conference.getStatus())) {
+            response.setSuccess(false);
+            response.setErrorCode(6004);
+            response.setErrorMessage("会议已结束");
+            return response;
+        }
+
+        // 调用 ConferenceManager 加入会议
+        boolean success = conferenceManager.joinConference(
+            conference.getConferenceUri(),
+            userId,
+            ParticipantRole.PARTICIPANT
+        );
+
+        if (success) {
+            response.setSuccess(true);
+            response.setConferenceId(conferenceId);
+            response.setUserId(userId);
+            response.setRole(ParticipantRole.PARTICIPANT.getCode());
+            response.setJoinTime(LocalDateTime.now().format(DATE_FORMATTER));
+
+            // 获取会议信息
+            ConferenceDTO conferenceDTO = conferenceManager.getConferenceInfo(conference.getConferenceUri());
+            response.setConference(conferenceDTO);
+
+            // 发送 WebSocket 通知
+            webSocketHandler.notifyParticipantJoined(conferenceId, userId);
+
+            logger.info("用户成功加入会议: conferenceId={}, userId={}", conferenceId, userId);
+        } else {
+            response.setSuccess(false);
+            response.setErrorCode(6002);
+            response.setErrorMessage("会议人数已满");
+        }
+
+        return response;
+    }
+
+    /**
+     * 离开会议
+     *
+     * @param conferenceId 会议ID
+     * @param userId 用户ID
+     * @return 离开结果
+     */
+    @Transactional
+    public LeaveConferenceResponse leaveConference(Long conferenceId, Long userId) {
+        logger.info("用户离开会议: conferenceId={}, userId={}", conferenceId, userId);
+
+        LeaveConferenceResponse response = new LeaveConferenceResponse();
+
+        // 获取会议
+        Conference conference = conferenceMapper.selectById(conferenceId);
+        if (conference == null) {
+            throw new RuntimeException("会议不存在");
+        }
+
+        // 获取参与者记录
+        QueryWrapper<ConferenceParticipant> wrapper = new QueryWrapper<>();
+        wrapper.eq("conference_id", conferenceId)
+               .eq("user_id", userId)
+               .isNull("leave_time");
+
+        ConferenceParticipant participant = participantMapper.selectOne(wrapper);
+        if (participant == null) {
+            throw new RuntimeException("用户未在会议中");
+        }
+
+        // 计算参会时长
+        LocalDateTime joinTime = participant.getJoinTime();
+        LocalDateTime leaveTime = LocalDateTime.now();
+        long duration = Duration.between(joinTime, leaveTime).getSeconds();
+
+        // 调用 ConferenceManager 离开会议
+        conferenceManager.leaveConference(conference.getConferenceUri(), userId);
+
+        response.setLeaveTime(leaveTime.format(DATE_FORMATTER));
+        response.setDuration((int) duration);
+
+        // 发送 WebSocket 通知
+        webSocketHandler.notifyParticipantLeft(conferenceId, userId);
+
+        logger.info("用户成功离开会议: conferenceId={}, userId={}, duration={}s", conferenceId, userId, duration);
+
+        return response;
+    }
+
+    /**
+     * 邀请参与者
+     *
+     * @param conferenceId 会议ID
+     * @param inviterId 邀请者ID
+     * @param userIds 被邀请用户ID列表
+     * @return 邀请结果
+     */
+    public InviteResponse inviteParticipants(Long conferenceId, Long inviterId, List<Long> userIds) {
+        logger.info("邀请参与者: conferenceId={}, inviterId={}, userIds={}", conferenceId, inviterId, userIds);
+
+        InviteResponse response = new InviteResponse();
+        List<InviteResponse.FailedUser> failedUsers = new ArrayList<>();
+        int successCount = 0;
+
+        // 获取会议
+        Conference conference = conferenceMapper.selectById(conferenceId);
+        if (conference == null) {
+            throw new RuntimeException("会议不存在");
+        }
+
+        // 验证邀请者是否在会议中
+        QueryWrapper<ConferenceParticipant> wrapper = new QueryWrapper<>();
+        wrapper.eq("conference_id", conferenceId)
+               .eq("user_id", inviterId)
+               .isNull("leave_time");
+
+        if (participantMapper.selectCount(wrapper) == 0) {
+            throw new RuntimeException("邀请者不在会议中");
+        }
+
+        // 逐个邀请
+        for (Long userId : userIds) {
+            User user = userMapper.selectById(userId);
+            if (user == null) {
+                failedUsers.add(new InviteResponse.FailedUser(userId, "用户不存在"));
+                continue;
+            }
+
+            try {
+                // 发送 WebSocket 邀请通知
+                webSocketHandler.sendConferenceInvite(
+                    userId,
+                    conferenceId,
+                    conference.getConferenceUri(),
+                    inviterId,
+                    conference.getTitle()
+                );
+
+                successCount++;
+            } catch (Exception e) {
+                logger.error("邀请用户失败: userId={}", userId, e);
+                failedUsers.add(new InviteResponse.FailedUser(userId, "发送邀请失败"));
+            }
+        }
+
+        response.setSuccessCount(successCount);
+        response.setFailedUsers(failedUsers);
+
+        logger.info("邀请完成: successCount={}, failedCount={}", successCount, failedUsers.size());
+
+        return response;
+    }
+
+    /**
+     * 结束会议
+     *
+     * @param conferenceId 会议ID
+     * @param userId 操作者ID
+     * @return 结束结果
+     */
+    @Transactional
+    public EndConferenceResponse endConference(Long conferenceId, Long userId) {
+        logger.info("结束会议: conferenceId={}, userId={}", conferenceId, userId);
+
+        EndConferenceResponse response = new EndConferenceResponse();
+
+        // 获取会议
+        Conference conference = conferenceMapper.selectById(conferenceId);
+        if (conference == null) {
+            response.setSuccess(false);
+            response.setErrorCode(6001);
+            response.setErrorMessage("会议不存在");
+            return response;
+        }
+
+        // 验证是否为主持人
+        if (!conference.getCreatorId().equals(userId)) {
+            response.setSuccess(false);
+            response.setErrorCode(6003);
+            response.setErrorMessage("不是会议主持人");
+            return response;
+        }
+
+        // 检查会议状态
+        if (ConferenceStatus.ENDED.getCode().equals(conference.getStatus())) {
+            response.setSuccess(false);
+            response.setErrorCode(6004);
+            response.setErrorMessage("会议已结束");
+            return response;
+        }
+
+        // 计算会议时长
+        LocalDateTime startTime = conference.getStartTime();
+        LocalDateTime endTime = LocalDateTime.now();
+        long duration = Duration.between(startTime, endTime).getSeconds();
+
+        // 统计参与人数
+        QueryWrapper<ConferenceParticipant> wrapper = new QueryWrapper<>();
+        wrapper.eq("conference_id", conferenceId);
+        long totalParticipants = participantMapper.selectCount(wrapper);
+
+        // 调用 ConferenceManager 结束会议
+        conferenceManager.endConference(conference.getConferenceUri());
+
+        response.setSuccess(true);
+        response.setConferenceId(conferenceId);
+        response.setEndTime(endTime.format(DATE_FORMATTER));
+        response.setDuration((int) duration);
+        response.setTotalParticipants((int) totalParticipants);
+
+        // 发送 WebSocket 通知
+        webSocketHandler.notifyConferenceEnded(conferenceId);
+
+        logger.info("会议已结束: conferenceId={}, duration={}s, totalParticipants={}",
+                    conferenceId, duration, totalParticipants);
+
+        return response;
+    }
+
+    /**
+     * 获取会议信息
+     *
+     * @param conferenceId 会议ID
+     * @return 会议信息
+     */
+    public ConferenceDTO getConferenceInfo(Long conferenceId) {
+        logger.info("获取会议信息: conferenceId={}", conferenceId);
+
+        Conference conference = conferenceMapper.selectById(conferenceId);
+        if (conference == null) {
+            return null;
+        }
+
+        return conferenceManager.getConferenceInfo(conference.getConferenceUri());
+    }
+
+    /**
+     * 获取参与者列表
+     *
+     * @param conferenceId 会议ID
+     * @return 参与者列表
+     */
+    public List<ParticipantDTO> getParticipants(Long conferenceId) {
+        logger.info("获取参与者列表: conferenceId={}", conferenceId);
+
+        Conference conference = conferenceMapper.selectById(conferenceId);
+        if (conference == null) {
+            throw new RuntimeException("会议不存在");
+        }
+
+        ConferenceDTO conferenceDTO = conferenceManager.getConferenceInfo(conference.getConferenceUri());
+        return conferenceDTO != null ? conferenceDTO.getParticipants() : new ArrayList<>();
+    }
+
+    /**
+     * 获取会议列表
+     *
+     * @param userId 用户ID
+     * @param status 状态筛选
+     * @param page 分页参数
+     * @return 会议列表
+     */
+    public IPage<ConferenceDTO> getConferenceList(Long userId, Integer status, Page<ConferenceDTO> page) {
+        logger.info("获取会议列表: userId={}, status={}, page={}", userId, status, page.getCurrent());
+
+        // 查询用户创建的或参与过的会议
+        QueryWrapper<ConferenceParticipant> participantWrapper = new QueryWrapper<>();
+        participantWrapper.eq("user_id", userId);
+
+        List<ConferenceParticipant> participants = participantMapper.selectList(participantWrapper);
+        List<Long> conferenceIds = participants.stream()
+            .map(ConferenceParticipant::getConferenceId)
+            .distinct()
+            .collect(Collectors.toList());
+
+        if (conferenceIds.isEmpty()) {
+            return new Page<>(page.getCurrent(), page.getSize());
+        }
+
+        // 查询会议
+        QueryWrapper<Conference> conferenceWrapper = new QueryWrapper<>();
+        conferenceWrapper.in("id", conferenceIds);
+
+        if (status != null) {
+            conferenceWrapper.eq("status", status);
+        }
+
+        conferenceWrapper.orderByDesc("create_time");
+
+        IPage<Conference> conferencePage = conferenceMapper.selectPage(
+            new Page<>(page.getCurrent(), page.getSize()),
+            conferenceWrapper
+        );
+
+        // 转换为 DTO
+        List<ConferenceDTO> dtoList = conferencePage.getRecords().stream()
+            .map(conf -> {
+                ConferenceDTO dto = conferenceManager.getConferenceInfo(conf.getConferenceUri());
+                if (dto == null) {
+                    dto = convertToDTO(conf);
+                }
+                return dto;
+            })
+            .collect(Collectors.toList());
+
+        Page<ConferenceDTO> resultPage = new Page<>(page.getCurrent(), page.getSize(), conferencePage.getTotal());
+        resultPage.setRecords(dtoList);
+
+        return resultPage;
+    }
+
+    /**
+     * 更新参与者状态
+     *
+     * @param conferenceId 会议ID
+     * @param userId 用户ID
+     * @param audioEnabled 是否开启音频
+     * @param videoEnabled 是否开启视频
+     */
+    public void updateParticipantStatus(Long conferenceId, Long userId, Boolean audioEnabled, Boolean videoEnabled) {
+        logger.info("更新参与者状态: conferenceId={}, userId={}, audio={}, video={}",
+                    conferenceId, userId, audioEnabled, videoEnabled);
+
+        // 发送 WebSocket 通知
+        webSocketHandler.notifyParticipantStatusChanged(conferenceId, userId, audioEnabled, videoEnabled);
+    }
+
+    /**
+     * 移除参与者 (主持人权限)
+     *
+     * @param conferenceId 会议ID
+     * @param operatorId 操作者ID
+     * @param userId 被移除的用户ID
+     * @return 是否成功
+     */
+    @Transactional
+    public boolean removeParticipant(Long conferenceId, Long operatorId, Long userId) {
+        logger.info("移除参与者: conferenceId={}, operatorId={}, userId={}", conferenceId, operatorId, userId);
+
+        // 获取会议
+        Conference conference = conferenceMapper.selectById(conferenceId);
+        if (conference == null) {
+            throw new RuntimeException("会议不存在");
+        }
+
+        // 验证操作者是否为主持人
+        if (!conference.getCreatorId().equals(operatorId)) {
+            return false;
+        }
+
+        // 不能移除主持人
+        if (userId.equals(conference.getCreatorId())) {
+            throw new RuntimeException("不能移除主持人");
+        }
+
+        // 调用 ConferenceManager 移除参与者
+        conferenceManager.leaveConference(conference.getConferenceUri(), userId);
+
+        // 发送 WebSocket 通知
+        webSocketHandler.notifyParticipantRemoved(conferenceId, userId);
+
+        logger.info("参与者已被移除: conferenceId={}, userId={}", conferenceId, userId);
+
+        return true;
+    }
+
+    /**
+     * 将 Conference 实体转换为 DTO
+     */
+    private ConferenceDTO convertToDTO(Conference conference) {
+        ConferenceDTO dto = new ConferenceDTO();
+        dto.setId(conference.getId());
+        dto.setConferenceUri(conference.getConferenceUri());
+        dto.setTitle(conference.getTitle());
+        dto.setCreatorId(conference.getCreatorId());
+        dto.setStatus(conference.getStatus());
+        dto.setMaxParticipants(conference.getMaxParticipants());
+
+        if (conference.getStartTime() != null) {
+            dto.setStartTime(conference.getStartTime().format(DATE_FORMATTER));
+        }
+        if (conference.getEndTime() != null) {
+            dto.setEndTime(conference.getEndTime().format(DATE_FORMATTER));
+        }
+
+        return dto;
+    }
+}

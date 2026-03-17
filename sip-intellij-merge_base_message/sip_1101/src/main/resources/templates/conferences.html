@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会议管理 - SIP IM 系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .stats-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            color: #667eea;
+            font-size: 36px;
+            margin-bottom: 5px;
+        }
+
+        .stat-item p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .auto-refresh-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .conference-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .conference-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .conference-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .conference-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .conference-title {
+            flex: 1;
+        }
+
+        .conference-title h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .conference-id {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .conference-info {
+            margin: 15px 0;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .info-label {
+            color: #666;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .participants {
+            margin-top: 15px;
+        }
+
+        .participants-title {
+            color: #667eea;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .participant-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .participant-tag {
+            background: #e7f0ff;
+            color: #667eea;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .conference-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .btn-view {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #5568d3;
+        }
+
+        .btn-end {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-end:hover {
+            background: #c82333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: 10px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .time-info {
+            color: white;
+            font-size: 12px;
+            text-align: right;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>📹 会议管理</h1>
+            <a href="http://10.29.209.85:8081/dashboard" class="back-btn">← 返回主页</a>
+        </div>
+
+        <!-- 错误提示 -->
+        <div id="errorMessage" class="error" style="display: none;"></div>
+
+        <!-- 统计栏 -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <h3 id="totalConferences">-</h3>
+                <p>会议总数</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="activeConferences">-</h3>
+                <p>进行中</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="totalParticipants">-</h3>
+                <p>参与人数</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="displayedConferences">-</h3>
+                <p>显示数量</p>
+            </div>
+        </div>
+
+        <!-- 控制栏 -->
+        <div class="controls">
+            <input type="text"
+                   id="searchBox"
+                   class="search-box"
+                   placeholder="搜索会议名称或会议室号...">
+            <select id="statusFilter" class="filter-select">
+                <option value="all">全部状态</option>
+                <option value="active">进行中</option>
+                <option value="inactive">已结束</option>
+            </select>
+            <button class="refresh-btn" onclick="loadConferences()">🔄 刷新</button>
+            <label class="auto-refresh-label">
+                <input type="checkbox" id="autoRefresh" checked>
+                自动刷新 (30秒)
+            </label>
+        </div>
+
+        <!-- 加载状态 -->
+        <div id="loadingMessage" class="loading">
+            正在加载会议数据...
+        </div>
+
+        <!-- 会议网格 -->
+        <div id="conferenceGrid" class="conference-grid" style="display: none;">
+        </div>
+
+        <!-- 空状态 -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <i>📭</i>
+            <h3>暂无会议</h3>
+            <p>当前没有任何会议</p>
+        </div>
+
+        <!-- 时间信息 -->
+        <div class="time-info" id="timeInfo"></div>
+    </div>
+
+    <script>
+        let allConferences = [];
+        let autoRefreshInterval = null;
+
+        // 页面加载时执行
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConferences();
+            setupAutoRefresh();
+            setupFilters();
+        });
+
+        // 加载会议列表
+        async function loadConferences() {
+            try {
+                const response = await fetch('http://10.29.209.85:8081/api/conference/list');
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    allConferences = result.data || [];
+                    displayConferences(allConferences);
+                    updateStats();
+                    hideError();
+                } else {
+                    showError('加载失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('加载会议列表失败:', error);
+                showError('网络错误，无法加载数据');
+            }
+
+            updateTimeInfo();
+        }
+
+        // 显示会议列表
+        function displayConferences(conferences) {
+            const grid = document.getElementById('conferenceGrid');
+            const loading = document.getElementById('loadingMessage');
+            const empty = document.getElementById('emptyState');
+
+            loading.style.display = 'none';
+
+            if (conferences.length === 0) {
+                grid.style.display = 'none';
+                empty.style.display = 'block';
+                return;
+            }
+
+            empty.style.display = 'none';
+            grid.style.display = 'grid';
+
+            grid.innerHTML = conferences.map(conf => `
+                <div class="conference-card">
+                    <div class="conference-header">
+                        <div class="conference-title">
+                            <h3>${conf.roomNumber || '会议室 ' + conf.conferenceId}</h3>
+                            <div class="conference-id">ID: ${conf.conferenceId}</div>
+                        </div>
+                        <span class="status-badge ${conf.isActive ? 'status-active' : 'status-inactive'}">
+                            ${conf.isActive ? '进行中' : '已结束'}
+                        </span>
+                    </div>
+
+                    <div class="conference-info">
+                        <div class="info-row">
+                            <span class="info-label">创建者</span>
+                            <span class="info-value">${conf.creatorName || conf.creatorId || '-'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">创建时间</span>
+                            <span class="info-value">${formatDateTime(conf.createTime)}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">参与人数</span>
+                            <span class="info-value">${conf.participantCount || conf.participants?.length || 0} 人</span>
+                        </div>
+                        ${conf.description ? `
+                        <div class="info-row">
+                            <span class="info-label">会议说明</span>
+                            <span class="info-value">${conf.description}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    ${conf.participants && conf.participants.length > 0 ? `
+                    <div class="participants">
+                        <div class="participants-title">参与者</div>
+                        <div class="participant-list">
+                            ${conf.participants.map(p => `
+                                <span class="participant-tag">${p.username || p.userId}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <div class="conference-actions">
+                        <button class="action-btn btn-view" onclick="viewConferenceDetails(${conf.conferenceId})">
+                            查看详情
+                        </button>
+                        ${conf.isActive ? `
+                        <button class="action-btn btn-end" onclick="endConference(${conf.conferenceId})">
+                            结束会议
+                        </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('displayedConferences').textContent = conferences.length;
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const total = allConferences.length;
+            const active = allConferences.filter(c => c.isActive).length;
+            const participants = allConferences.reduce((sum, c) =>
+                sum + (c.participantCount || c.participants?.length || 0), 0);
+
+            document.getElementById('totalConferences').textContent = total;
+            document.getElementById('activeConferences').textContent = active;
+            document.getElementById('totalParticipants').textContent = participants;
+        }
+
+        // 格式化日期时间
+        function formatDateTime(dateTime) {
+            if (!dateTime) return '-';
+            const date = new Date(dateTime);
+            return date.toLocaleString('zh-CN', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // 更新时间信息
+        function updateTimeInfo() {
+            const now = new Date();
+            document.getElementById('timeInfo').textContent =
+                '数据更新时间: ' + now.toLocaleString('zh-CN');
+        }
+
+        // 设置自动刷新
+        function setupAutoRefresh() {
+            const checkbox = document.getElementById('autoRefresh');
+
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    startAutoRefresh();
+                } else {
+                    stopAutoRefresh();
+                }
+            });
+
+            if (checkbox.checked) {
+                startAutoRefresh();
+            }
+        }
+
+        function startAutoRefresh() {
+            if (autoRefreshInterval) return;
+            autoRefreshInterval = setInterval(loadConferences, 30000);
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
+        // 设置筛选器
+        function setupFilters() {
+            const searchBox = document.getElementById('searchBox');
+            const statusFilter = document.getElementById('statusFilter');
+
+            searchBox.addEventListener('input', applyFilters);
+            statusFilter.addEventListener('change', applyFilters);
+        }
+
+        function applyFilters() {
+            const keyword = document.getElementById('searchBox').value.toLowerCase().trim();
+            const status = document.getElementById('statusFilter').value;
+
+            let filtered = allConferences;
+
+            // 状态筛选
+            if (status === 'active') {
+                filtered = filtered.filter(c => c.isActive);
+            } else if (status === 'inactive') {
+                filtered = filtered.filter(c => !c.isActive);
+            }
+
+            // 关键词搜索
+            if (keyword) {
+                filtered = filtered.filter(c =>
+                    (c.roomNumber && c.roomNumber.toLowerCase().includes(keyword)) ||
+                    (c.conferenceId && c.conferenceId.toString().includes(keyword)) ||
+                    (c.creatorName && c.creatorName.toLowerCase().includes(keyword))
+                );
+            }
+
+            displayConferences(filtered);
+        }
+
+        // 查看会议详情
+        function viewConferenceDetails(conferenceId) {
+            // 这里可以打开一个模态框或跳转到详情页
+            alert('会议详情功能待开发\n会议ID: ' + conferenceId);
+        }
+
+        // 结束会议
+        async function endConference(conferenceId) {
+            if (!confirm('确定要结束这个会议吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://10.29.209.85:8081/api/conference/end/${conferenceId}`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    alert('会议已结束');
+                    loadConferences();
+                } else {
+                    alert('操作失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('结束会议失败:', error);
+                alert('网络错误，操作失败');
+            }
+        }
+
+        // 显示错误
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // 隐藏错误
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

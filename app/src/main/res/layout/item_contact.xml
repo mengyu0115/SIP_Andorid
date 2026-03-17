@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="64dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:background="?attr/selectableItemBackground">
+
+    <!-- 左侧：头像（圆形，与 item_conversation.xml 风格一致） -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivContactAvatar"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:src="@android:drawable/ic_menu_gallery"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/CircleImageStyle" />
+
+    <!-- 中间：用户名（对应 PC 端 UserListCell 的 usernameLabel，#333333） -->
+    <TextView
+        android:id="@+id/tvContactName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
+        android:textSize="16sp"
+        android:textColor="#333333"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <!-- 右侧：在线状态圆点（对应 PC 端 UserListCell 的 statusDot） -->
+    <View
+        android:id="@+id/viewOnlineDot"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:background="@drawable/shape_online_dot" />
+
+</LinearLayout>

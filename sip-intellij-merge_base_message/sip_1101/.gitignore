@@ -1,0 +1,45 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+
+# Log files
+*.log
+registerLog.txt
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build output
+*.class
+
+# Package Files
+*.jar
+*.war
+*.ear
+
+# Special Windows device file
+nul
+
+# Large test files
+client.txt
+client2.txt
+
+# Database files
+*.db
+
+# Temporary files
+*.tmp
+*~
+
+# ===== 重要：忽略上传的文件 =====
+# 避免将用户上传的图片/文件提交到 Git 仓库
+uploads/
