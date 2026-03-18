@@ -105,6 +105,9 @@ public class MainController {
     // 认证Token
     private String authToken;
 
+    // username → 数据库真实 id 的缓存（在加载好友列表时填充）
+    private final java.util.Map<String, Long> usernameToIdCache = new java.util.concurrent.ConcurrentHashMap<>();
+
     // 会议窗口映射：conferenceId -> Stage，防止重复打开
     private java.util.Map<String, javafx.stage.Stage> conferenceStages = new java.util.HashMap<>();
 
@@ -113,6 +116,9 @@ public class MainController {
 
     // ✅ 在线状态定时刷新
     private java.util.Timer onlineStatusTimer;
+
+    // 在线用户集合缓存（用于判断发消息时对方是否离线）
+    private volatile java.util.Set<String> cachedOnlineUsers = new java.util.HashSet<>();
 
     /**
      * 初始化
@@ -767,6 +773,7 @@ public class MainController {
 
                 // 2. 获取在线用户列表
                 java.util.Set<String> onlineUsers = fetchOnlineUsers();
+                cachedOnlineUsers = onlineUsers;
 
                 // 3. 在UI线程中更新列表
                 Platform.runLater(() -> {
@@ -898,7 +905,7 @@ public class MainController {
     }
 
     /**
-     * 从JSON响应中解析用户名列表
+     * 从JSON响应中解析用户名列表，同时缓存 username → id 映射
      */
     private java.util.List<String> parseUsernamesFromJson(String json) {
         java.util.List<String> usernames = new java.util.ArrayList<>();
@@ -920,6 +927,14 @@ public class MainController {
                 String username = extractJsonValue(userJson, "username");
                 if (!username.isEmpty()) {
                     usernames.add(username);
+
+                    // 缓存 username → 数据库真实 id
+                    String idStr = extractJsonNumberValue(userJson, "id");
+                    if (!idStr.isEmpty()) {
+                        try {
+                            usernameToIdCache.put(username, Long.parseLong(idStr));
+                        } catch (NumberFormatException ignored) {}
+                    }
                 }
             }
 
@@ -1368,17 +1383,21 @@ public class MainController {
                 String sipUsername = extractSipUsernameFromUsername(currentChatFriend);
                 log.info("📤 准备发送消息到 {} (SIP:{}): {}", currentChatFriend, sipUsername, message);
 
+                // SIP 发送
                 boolean success = sipMessageManager.sendTextMessage(sipUsername, message);
 
                 if (success) {
-                    log.info("✅ 消息发送成功");
+                    log.info("✅ SIP消息发送成功");
                 } else {
-                    log.error("❌ 消息发送失败");
+                    log.error("❌ SIP消息发送失败");
                     Platform.runLater(() -> {
                         showAlert("消息发送失败，请检查网络连接");
-                        // TODO: 可以在这里添加重试机制或将消息加入待发送队列
                     });
                 }
+
+                // HTTP 持久化到数据库（与 Android 端 persistTextMessage 一致）
+                persistTextMessageToServer(currentChatFriend, message);
+
             } catch (Exception e) {
                 log.error("❌ 发送消息异常", e);
                 Platform.runLater(() -> {
@@ -1714,20 +1733,89 @@ public class MainController {
     }
 
     /**
-     * 根据用户名获取用户ID
+     * 根据用户名获取数据库真实用户ID
+     * 从 usernameToIdCache 中查找（在 loadFriendList/parseUsernamesFromJson 时填充）
      */
     private Long getUserIdByUsername(String username) {
-        // 从好友列表中查找用户ID
-        // TODO: 需要在加载好友列表时缓存用户ID映射
-        // 临时方案：假设用户名格式为 userXXX，提取XXX作为ID
-        if (username != null && username.startsWith("user")) {
-            try {
-                return Long.parseLong(username.replace("user", ""));
-            } catch (NumberFormatException e) {
-                log.error("无法解析用户ID: {}", username);
-            }
+        Long id = usernameToIdCache.get(username);
+        if (id != null) {
+            return id;
         }
+        log.warn("usernameToIdCache 中未找到用户: {}，缓存大小: {}", username, usernameToIdCache.size());
         return null;
+    }
+
+    /**
+     * 持久化文本消息到服务器数据库
+     * POST /api/message/send
+     * Body: {fromUserId, toUserId, content, msgType:1, isOffline, isRead:0}
+     * 与 Android 端 ChatActivity.persistTextMessage 格式一致
+     */
+    private void persistTextMessageToServer(String friendName, String content) {
+        try {
+            Long toUserId = getUserIdByUsername(friendName);
+            if (toUserId == null) {
+                log.warn("持久化文本消息失败: 无法获取 {} 的用户ID", friendName);
+                return;
+            }
+            if (currentUserId == null) {
+                log.warn("持久化文本消息失败: currentUserId 为空");
+                return;
+            }
+
+            // 判断对方是否离线
+            boolean isOnline = cachedOnlineUsers.contains(friendName);
+            int isOffline = isOnline ? 0 : 1;
+
+            // 构建与 Android 端一致的 JSON 请求体
+            String jsonBody = "{" +
+                    "\"fromUserId\":" + currentUserId + "," +
+                    "\"toUserId\":" + toUserId + "," +
+                    "\"content\":\"" + escapeJsonString(content) + "\"," +
+                    "\"msgType\":1," +
+                    "\"isOffline\":" + isOffline + "," +
+                    "\"isRead\":0" +
+                    "}";
+
+            String url = SipConfig.getHttpServerUrl() + "/api/message/send";
+            java.net.URL apiUrl = new java.net.URL(url);
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) apiUrl.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            if (authToken != null && !authToken.isEmpty()) {
+                conn.setRequestProperty("Authorization", "Bearer " + authToken);
+            }
+            conn.setDoOutput(true);
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+
+            try (java.io.OutputStream os = conn.getOutputStream()) {
+                os.write(jsonBody.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                os.flush();
+            }
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == 200) {
+                log.info("文本消息已持久化到数据库: from={}, to={} (isOffline={})", currentUserId, toUserId, isOffline);
+            } else {
+                log.warn("文本消息持久化失败: HTTP {}", responseCode);
+            }
+            conn.disconnect();
+        } catch (Exception e) {
+            log.error("文本消息持久化异常", e);
+        }
+    }
+
+    /**
+     * 转义 JSON 字符串中的特殊字符
+     */
+    private static String escapeJsonString(String str) {
+        if (str == null) return "";
+        return str.replace("\\", "\\\\")
+                  .replace("\"", "\\\"")
+                  .replace("\n", "\\n")
+                  .replace("\r", "\\r")
+                  .replace("\t", "\\t");
     }
 
     /**

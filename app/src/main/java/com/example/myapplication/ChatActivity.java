@@ -192,8 +192,10 @@ public class ChatActivity extends AppCompatActivity {
         setupInputArea();
         registerMessageReceiver();
 
-        // 计算 SIP ID（与 SipMessageReceiver 提取的 fromUsername 一致）
-        targetSipId = String.valueOf(targetUserId);
+        // 计算 SIP ID：从 username 提取纯数字部分（对应 PC 端 extractSipUsernameFromUsername）
+        // 例如 "user100" -> "100"，与 SipMessageReceiver.extractUsername 的输出一致
+        // 注意：targetUserId 是数据库自增 id，可能与 SIP 号码不同
+        targetSipId = extractSipTarget(targetUserName);
 
         loadChatHistory();
     }
@@ -399,12 +401,11 @@ public class ChatActivity extends AppCompatActivity {
 
     private void registerMessageReceiver() {
         messageCallback = (fromUsername, content) -> {
-            // 只处理当前聊天对象的消息（对应 PC 端 if fromUsername.equals(currentChatFriend)）
-            // SIP 用户名可能是 sipUri 中的用户部分，也可能就是 username，都做匹配
-            String sipName = ServerConfig.getSipUsername();
-            boolean isFromTarget = fromUsername.equals(targetUserName)
-                    || fromUsername.equals(String.valueOf(targetUserId))
-                    || (sipName != null && targetUserName.contains(fromUsername));
+            // fromUsername 是 SIP 号码（如 "100"，由 SipMessageReceiver.extractUsername 提取）
+            // targetSipId 是从 targetUserName 提取的 SIP 号码（如 "user100" → "100"）
+            boolean isFromTarget = fromUsername.equals(targetSipId)
+                    || fromUsername.equals(targetUserName)
+                    || fromUsername.equals(String.valueOf(targetUserId));
 
             if (!isFromTarget) {
                 Log.d(TAG, "收到来自 " + fromUsername + " 的消息，非当前聊天对象，忽略");
@@ -529,86 +530,36 @@ public class ChatActivity extends AppCompatActivity {
         Long myId = ServerConfig.getCurrentUserId();
         if (myId == null) return;
 
+        // 从 username 提取 SIP number（如 "user102" → 102），用于兼容 PC 端存储
+        // PC 端曾用 SIP number（而非数据库 id）作为 toUserId 存入消息表
+        Long mySipNumber = parseSipNumber(ServerConfig.getCurrentUsername());
+        Long targetSipNumber = parseSipNumber(targetUserName);
+
         executor.execute(() -> {
             try {
-                String raw = ApiClient.getChatHistory(myId, targetUserId, 50);
-                if (raw == null) return;
-
-                JSONObject root = new JSONObject(raw);
-                if (root.optInt("code", -1) != 200) return;
-
-                // data 可能是数组，也可能是包含 list 的对象
+                // 用于消息去重（按 id）
+                java.util.Set<Long> seenIds = new java.util.HashSet<>();
                 List<ChatMessage> messages = new ArrayList<>();
-                JSONArray arr = null;
-                if (root.opt("data") instanceof JSONArray) {
-                    arr = root.getJSONArray("data");
-                } else if (root.opt("data") instanceof JSONObject) {
-                    JSONObject dataObj = root.getJSONObject("data");
-                    arr = dataObj.optJSONArray("list");
+
+                // 查询 1：用数据库真实 id（Android 端存储方式）
+                fetchAndParseHistory(myId, targetUserId, 50, messages, seenIds);
+
+                // 查询 2：用 SIP number（PC 端存储方式），仅当 SIP number 与数据库 id 不同时才查
+                if (targetSipNumber != null && targetSipNumber != targetUserId) {
+                    // 兼容 PC 端: from=myRealId, to=targetSipNumber
+                    fetchAndParseHistory(myId, targetSipNumber, 50, messages, seenIds);
+                }
+                if (mySipNumber != null && mySipNumber != myId) {
+                    // 兼容 PC 端: from=targetRealId, to=mySipNumber
+                    fetchAndParseHistory(targetUserId, mySipNumber, 50, messages, seenIds);
+                }
+                if (mySipNumber != null && targetSipNumber != null
+                        && (mySipNumber != myId || targetSipNumber != targetUserId)) {
+                    // 兼容 PC-PC: from=mySipNumber, to=targetSipNumber
+                    fetchAndParseHistory(mySipNumber, targetSipNumber, 50, messages, seenIds);
                 }
 
-                if (arr == null) return;
-
-                for (int i = 0; i < arr.length(); i++) {
-                    JSONObject obj = arr.getJSONObject(i);
-                    long fromId = obj.optLong("fromUserId", -1L);
-                    int msgType = obj.optInt("msgType", MSG_TYPE_TEXT);
-                    String content = obj.optString("content", "");
-                    String fileUrl = obj.optString("fileUrl", null);
-                    Long fileSize = obj.optLong("fileSize", 0L);
-                    Integer duration = obj.optInt("duration", 0);
-
-                    // 直接使用 timestamp 字段（long类型毫秒数），不做任何时区转换
-                    // 这样数据库存什么时间，客户端就显示什么时间
-                    long ts = obj.optLong("timestamp", System.currentTimeMillis());
-
-                    boolean isSent = (fromId == myId);
-                    int viewType = isSent ? ChatMessage.TYPE_SENT : ChatMessage.TYPE_RECEIVED;
-
-                    // 根据类型创建消息对象
-                    ChatMessage msg;
-                    String fromUsername = isSent ? ServerConfig.getCurrentUsername() : targetUserName;
-
-                    switch (msgType) {
-                        case MSG_TYPE_IMAGE:
-                            // 图片消息
-                            msg = ChatMessage.image(fromId, targetUserId, fromUsername,
-                                    fileUrl, fileSize, viewType);
-                            msg.setTimestamp(ts);
-                            msg.setContent(content); // 可选的描述
-                            break;
-
-                        case MSG_TYPE_FILE:
-                            // 文件消息
-                            msg = ChatMessage.file(fromId, targetUserId, fromUsername,
-                                    content, fileUrl, fileSize, viewType);
-                            msg.setTimestamp(ts);
-                            break;
-
-                        case MSG_TYPE_VOICE:
-                        case MSG_TYPE_VIDEO:
-                            // 语音/视频消息（暂用文本显示）
-                            msg = ChatMessage.text(fromId, targetUserId, fromUsername,
-                                    buildDisplayContent(msgType, content, fileUrl), viewType);
-                            msg.setTimestamp(ts);
-                            msg.setMsgType(msgType == MSG_TYPE_VOICE ? ChatMessage.MSG_TYPE_VOICE : ChatMessage.MSG_TYPE_VIDEO);
-                            msg.setFileUrl(fileUrl);
-                            msg.setFileSize(fileSize);
-                            msg.setDuration(duration);
-                            break;
-
-                        default:
-                            // 文本消息
-                            msg = ChatMessage.text(fromId, targetUserId, fromUsername,
-                                    content, viewType);
-                            msg.setTimestamp(ts);
-                            break;
-                    }
-
-                    messages.add(msg);
-                }
-
-                // 按时间戳升序排序（确保消息按时间顺序显示）
+                // 按时间戳升序排序
                 messages.sort((m1, m2) -> Long.compare(m1.getTimestamp(), m2.getTimestamp()));
 
                 runOnUiThread(() -> {
@@ -620,6 +571,102 @@ public class ChatActivity extends AppCompatActivity {
                 Log.e(TAG, "加载历史消息失败", e);
             }
         });
+    }
+
+    /**
+     * 从 username 解析 SIP number（如 "user102" → 102L）
+     */
+    private static Long parseSipNumber(String username) {
+        if (username != null && username.startsWith("user")) {
+            try {
+                return Long.parseLong(username.substring(4));
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 查询历史消息并解析，跳过已存在的消息（按 id 去重）
+     */
+    private void fetchAndParseHistory(long userId1, long userId2, int limit,
+                                      List<ChatMessage> outMessages, java.util.Set<Long> seenIds) {
+        try {
+            String raw = ApiClient.getChatHistory(userId1, userId2, limit);
+            if (raw == null) return;
+
+            JSONObject root = new JSONObject(raw);
+            if (root.optInt("code", -1) != 200) return;
+
+            JSONArray arr = null;
+            if (root.opt("data") instanceof JSONArray) {
+                arr = root.getJSONArray("data");
+            } else if (root.opt("data") instanceof JSONObject) {
+                JSONObject dataObj = root.getJSONObject("data");
+                arr = dataObj.optJSONArray("list");
+            }
+            if (arr == null) return;
+
+            Long myId = ServerConfig.getCurrentUserId();
+            Long mySipNumber = parseSipNumber(ServerConfig.getCurrentUsername());
+
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject obj = arr.getJSONObject(i);
+                long msgId = obj.optLong("id", -1L);
+
+                // 去重
+                if (msgId > 0 && !seenIds.add(msgId)) continue;
+
+                long fromId = obj.optLong("fromUserId", -1L);
+                int msgType = obj.optInt("msgType", MSG_TYPE_TEXT);
+                String content = obj.optString("content", "");
+                String fileUrl = obj.optString("fileUrl", null);
+                Long fileSize = obj.optLong("fileSize", 0L);
+                Integer duration = obj.optInt("duration", 0);
+                long ts = obj.optLong("timestamp", System.currentTimeMillis());
+
+                // 判断是否为自己发送的消息：fromId 可能是数据库 id 也可能是 SIP number
+                boolean isSent = (myId != null && fromId == myId)
+                        || (mySipNumber != null && fromId == mySipNumber);
+                int viewType = isSent ? ChatMessage.TYPE_SENT : ChatMessage.TYPE_RECEIVED;
+
+                String fromUsername = isSent ? ServerConfig.getCurrentUsername() : targetUserName;
+
+                ChatMessage msg;
+                switch (msgType) {
+                    case MSG_TYPE_IMAGE:
+                        msg = ChatMessage.image(fromId, targetUserId, fromUsername,
+                                fileUrl, fileSize, viewType);
+                        msg.setTimestamp(ts);
+                        msg.setContent(content);
+                        break;
+                    case MSG_TYPE_FILE:
+                        msg = ChatMessage.file(fromId, targetUserId, fromUsername,
+                                content, fileUrl, fileSize, viewType);
+                        msg.setTimestamp(ts);
+                        break;
+                    case MSG_TYPE_VOICE:
+                    case MSG_TYPE_VIDEO:
+                        msg = ChatMessage.text(fromId, targetUserId, fromUsername,
+                                buildDisplayContent(msgType, content, fileUrl), viewType);
+                        msg.setTimestamp(ts);
+                        msg.setMsgType(msgType == MSG_TYPE_VOICE ? ChatMessage.MSG_TYPE_VOICE : ChatMessage.MSG_TYPE_VIDEO);
+                        msg.setFileUrl(fileUrl);
+                        msg.setFileSize(fileSize);
+                        msg.setDuration(duration);
+                        break;
+                    default:
+                        msg = ChatMessage.text(fromId, targetUserId, fromUsername,
+                                content, viewType);
+                        msg.setTimestamp(ts);
+                        break;
+                }
+                outMessages.add(msg);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "fetchAndParseHistory(" + userId1 + "," + userId2 + ") failed", e);
+        }
     }
 
     /**

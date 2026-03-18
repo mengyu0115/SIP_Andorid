@@ -201,51 +201,57 @@ public class MainActivity extends AppCompatActivity
         Long userId = ServerConfig.getCurrentUserId();
         if (userId == null) return;
 
+        // 从 username 提取 SIP number（如 "user102" → 102），用于兼容 PC 端存储
+        Long sipNumber = parseSipNumberFromUsername(ServerConfig.getCurrentUsername());
+
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
-                String raw = ApiClient.getOfflineMessages(userId);
-                if (raw == null) return;
+                // 先拉取用户列表，构建 userId → SIP号码 映射
+                java.util.Map<Long, String> userIdToSipNumber = buildUserIdToSipNumberMap();
 
-                JSONObject root = new JSONObject(raw);
-                if (root.optInt("code", -1) != 200) return;
+                // 合并两次查询的离线消息（用数据库 id 和 SIP number 各查一次）
+                JSONArray mergedArr = new JSONArray();
+                java.util.Set<Long> seenMsgIds = new java.util.HashSet<>();
 
-                JSONArray arr = null;
-                if (root.opt("data") instanceof JSONArray) {
-                    arr = root.getJSONArray("data");
-                } else if (root.opt("data") instanceof JSONObject) {
-                    JSONObject dataObj = root.getJSONObject("data");
-                    arr = dataObj.optJSONArray("list");
+                // 查询 1：用数据库真实 id（Android 端存储方式）
+                collectOfflineMessages(userId, mergedArr, seenMsgIds);
+
+                // 查询 2：用 SIP number（PC 端存储方式）
+                if (sipNumber != null && sipNumber != userId) {
+                    collectOfflineMessages(sipNumber, mergedArr, seenMsgIds);
                 }
 
-                if (arr == null || arr.length() == 0) {
+                if (mergedArr.length() == 0) {
                     Log.d(TAG, "无离线消息");
                     return;
                 }
 
-                Log.i(TAG, "收到 " + arr.length() + " 条离线消息");
+                Log.i(TAG, "收到 " + mergedArr.length() + " 条离线消息");
 
-                // 开启批量模式，避免离线消息大量通知同时弹出
+                // 开启批量模式
                 if (messageNotificationListener != null) {
                     messageNotificationListener.setBatchMode(true);
                 }
 
                 SipMessageReceiver receiver = SipMessageReceiver.getInstance();
-                for (int i = 0; i < arr.length(); i++) {
-                    JSONObject msg = arr.getJSONObject(i);
+                for (int i = 0; i < mergedArr.length(); i++) {
+                    JSONObject msg = mergedArr.getJSONObject(i);
                     long fromUserId = msg.optLong("fromUserId", -1L);
                     int msgType = msg.optInt("msgType", 1);
                     String content = msg.optString("content", "");
                     String fileUrl = msg.optString("fileUrl", null);
 
-                    // 构造与 SIP MESSAGE 一致的内容格式，便于 ChatActivity 统一解析
                     String sipContent = buildOfflineMessageContent(msgType, content, fileUrl);
 
-                    // 用 fromUserId 作为发送者标识（SipMessageReceiver 会提取用户名）
-                    String fromUri = "sip:" + fromUserId + "@" + ServerConfig.getServerIp();
+                    // 将 fromUserId 映射为 SIP 号码
+                    String fromSipNumber = userIdToSipNumber.get(fromUserId);
+                    if (fromSipNumber == null) {
+                        fromSipNumber = String.valueOf(fromUserId);
+                    }
+                    String fromUri = "sip:" + fromSipNumber + "@" + ServerConfig.getServerIp();
                     receiver.onSipMessageReceived(fromUri, sipContent);
                 }
 
-                // 关闭批量模式并 flush 汇总通知
                 if (messageNotificationListener != null) {
                     messageNotificationListener.setBatchMode(false);
                     messageNotificationListener.flushBatchNotifications();
@@ -253,12 +259,89 @@ public class MainActivity extends AppCompatActivity
 
             } catch (Exception e) {
                 Log.e(TAG, "加载离线消息失败", e);
-                // 确保异常时也关闭批量模式
                 if (messageNotificationListener != null) {
                     messageNotificationListener.setBatchMode(false);
                 }
             }
         });
+    }
+
+    /**
+     * 从 username 解析 SIP number（如 "user102" → 102L）
+     */
+    private static Long parseSipNumberFromUsername(String username) {
+        if (username != null && username.startsWith("user")) {
+            try {
+                return Long.parseLong(username.substring(4));
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 查询离线消息并合并到数组，按消息 id 去重
+     */
+    private void collectOfflineMessages(long queryUserId, JSONArray outArr, java.util.Set<Long> seenIds) {
+        try {
+            String raw = ApiClient.getOfflineMessages(queryUserId);
+            if (raw == null) return;
+
+            JSONObject root = new JSONObject(raw);
+            if (root.optInt("code", -1) != 200) return;
+
+            JSONArray arr = null;
+            if (root.opt("data") instanceof JSONArray) {
+                arr = root.getJSONArray("data");
+            } else if (root.opt("data") instanceof JSONObject) {
+                JSONObject dataObj = root.getJSONObject("data");
+                arr = dataObj.optJSONArray("list");
+            }
+            if (arr == null) return;
+
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject msg = arr.getJSONObject(i);
+                long msgId = msg.optLong("id", -1L);
+                if (msgId > 0 && !seenIds.add(msgId)) continue;
+                outArr.put(msg);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "collectOfflineMessages(" + queryUserId + ") failed", e);
+        }
+    }
+
+    /**
+     * 构建 userId(数据库id) → SIP号码 的映射
+     * 例如：{1L: "100", 2L: "101"}（user100 的 id=1, user101 的 id=2）
+     */
+    private java.util.Map<Long, String> buildUserIdToSipNumberMap() {
+        java.util.Map<Long, String> map = new java.util.HashMap<>();
+        try {
+            String raw = ApiClient.getUserList();
+            if (raw == null) return map;
+
+            JSONObject root = new JSONObject(raw);
+            if (root.optInt("code", -1) != 200) return map;
+
+            JSONObject data = root.optJSONObject("data");
+            JSONArray arr = (data != null) ? data.optJSONArray("list") : root.optJSONArray("data");
+            if (arr == null) return map;
+
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject obj = arr.getJSONObject(i);
+                long id = obj.optLong("id", -1L);
+                String username = obj.optString("username", "");
+                if (id > 0 && !username.isEmpty()) {
+                    // "user100" -> "100"
+                    String sipNumber = username.startsWith("user") ? username.substring(4) : username;
+                    map.put(id, sipNumber);
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "构建用户映射失败", e);
+        }
+        return map;
     }
 
     /**

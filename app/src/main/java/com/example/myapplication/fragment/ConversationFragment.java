@@ -80,8 +80,8 @@ public class ConversationFragment extends Fragment {
 
         adapter = new ConversationAdapter();
         adapter.setOnItemClickListener(item -> {
-            // 清除未读计数 + 取消通知
-            String sipId = String.valueOf(item.getUserId());
+            // 清除未读计数 + 取消通知（用 SIP ID 作为 key）
+            String sipId = extractSipNumber(item.getName());
             UnreadManager.getInstance().clearUnread(sipId);
             new NotificationHelper(requireContext()).cancelNotification(sipId);
 
@@ -167,12 +167,16 @@ public class ConversationFragment extends Fragment {
                     boolean isOnline = onlineIds.contains(u.id);
                     String status = isOnline ? "在线" : "离线";
 
-                    // 查询未读计数（用 userId 作为 key，与 SipMessageReceiver 提取的 fromUsername 一致）
-                    int unread = unreadManager.getUnreadCount(String.valueOf(u.id));
+                    // SIP ID：从 username 提取纯数字（如 "user100" -> "100"）
+                    // 与 SipMessageReceiver.extractUsername 保持一致
+                    String sipId = extractSipNumber(u.username);
+
+                    // 查询未读计数（用 sipId 作为 key，与 SipMessageReceiver 提取的 fromUsername 一致）
+                    int unread = unreadManager.getUnreadCount(sipId);
                     items.add(new ConversationItem(u.id, u.username, status, status, unread));
 
                     // 缓存用户信息到 MessageNotificationListener（通知显示名称用）
-                    cacheUserInfoForNotification(String.valueOf(u.id), u.id, u.username);
+                    cacheUserInfoForNotification(sipId, u.id, u.username);
                 }
 
                 if (items.isEmpty()) {
@@ -272,6 +276,17 @@ public class ConversationFragment extends Fragment {
         if (refreshScheduler != null) {
             refreshScheduler.shutdownNow();
         }
+    }
+
+    /**
+     * 从 username 提取 SIP 号码（与 SipMessageReceiver.extractUsername 逻辑一致）
+     * 例如 "user100" -> "100"
+     */
+    private static String extractSipNumber(String username) {
+        if (username != null && username.startsWith("user")) {
+            return username.substring(4);
+        }
+        return username != null ? username : "";
     }
 
     /** 内部用户条目 */

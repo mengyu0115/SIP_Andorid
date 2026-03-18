@@ -10,7 +10,7 @@ if (configFile.exists()) {
     println("📋 读取共享配置: SERVER_IP = ${configProps.SERVER_IP}")
 } else {
     println("⚠️ 警告: 配置文件 ${configFile} 不存在，使用默认值")
-    configProps.SERVER_IP = "10.129.172.123"
+    configProps.SERVER_IP = "10.29.209.85"
     configProps.HTTP_PORT = "8081"
     configProps.SIP_PORT = "5060"
 }

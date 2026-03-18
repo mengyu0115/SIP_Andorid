@@ -71,9 +71,9 @@ mybatis-plus:
 sip:
   # MSS (MiniSipServer) 服务器配置
   server:
-    host: 10.29.248.170       # MSS服务器地址(当前主机)
+    host: 10.29.209.85       # MSS服务器地址(当前主机)
     port: 5060
-    domain: 10.29.248.170     # SIP域名
+    domain: 10.29.209.85     # SIP域名
 
   # 本地配置
   local:
@@ -148,7 +148,7 @@ file:
   # 3. 便于管理（文件跟随项目，清理方便）
   upload-dir: ./uploads
   # 文件访问URL前缀
-  base-url: http://10.29.248.170:8081/files
+  base-url: http://10.29.209.85:8081/files
   # 允许的文件类型
   allowed-types:
     - image/jpeg

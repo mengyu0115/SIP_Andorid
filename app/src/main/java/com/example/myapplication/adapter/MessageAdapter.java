@@ -224,10 +224,22 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         void bind(ChatMessage msg) {
+            // 重置所有子视图的可见性（防止 RecyclerView 复用导致残留）
+            tvMessage.setVisibility(View.GONE);
+            tvMessage.setOnClickListener(null);
+            ImageView ivImage = itemView.findViewById(R.id.ivMessageImage);
+            if (ivImage != null) {
+                ivImage.setVisibility(View.GONE);
+                ivImage.setOnClickListener(null);
+            }
+            View fileContainer = itemView.findViewById(R.id.fileContainer);
+            if (fileContainer != null) {
+                fileContainer.setVisibility(View.GONE);
+                fileContainer.setOnClickListener(null);
+            }
+
             if (msg.isImage()) {
                 // 图片消息：使用ImageView
-                tvMessage.setVisibility(View.GONE);
-                ImageView ivImage = itemView.findViewById(R.id.ivMessageImage);
                 if (ivImage != null) {
                     ivImage.setVisibility(View.VISIBLE);
 
@@ -331,14 +343,14 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 String videoText = "🎬 [视频] " + (msg.getFileName() != null ? msg.getFileName() : "");
                 tvMessage.setText(videoText);
                 tvMessage.setOnClickListener(v -> {
-                    String fullUrl = buildFullUrl(msg.getFileUrl());
+                    String fullUrl2 = buildFullUrl(msg.getFileUrl());
                     android.widget.Toast.makeText(
                             v.getContext(),
                             "正在下载视频...",
                             android.widget.Toast.LENGTH_SHORT
                     ).show();
                     FileDownloadManager.getInstance().downloadFile(
-                            fullUrl,
+                            fullUrl2,
                             msg.getFileName() != null ? msg.getFileName() : "video.mp4",
                             new FileDownloadManager.DownloadCallback() {
                                 @Override
@@ -363,8 +375,6 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 });
             } else if (msg.isFile()) {
                 // 文件消息：显示文件信息
-                tvMessage.setVisibility(View.GONE);
-                View fileContainer = itemView.findViewById(R.id.fileContainer);
                 if (fileContainer != null) {
                     fileContainer.setVisibility(View.VISIBLE);
                     TextView tvFileName = fileContainer.findViewById(R.id.tvFileName);
@@ -429,10 +439,22 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         void bind(ChatMessage msg) {
+            // 重置所有子视图的可见性（防止 RecyclerView 复用导致残留）
+            tvMessage.setVisibility(View.GONE);
+            tvMessage.setOnClickListener(null);
+            ImageView ivImage = itemView.findViewById(R.id.ivMessageImage);
+            if (ivImage != null) {
+                ivImage.setVisibility(View.GONE);
+                ivImage.setOnClickListener(null);
+            }
+            View fileContainer = itemView.findViewById(R.id.fileContainer);
+            if (fileContainer != null) {
+                fileContainer.setVisibility(View.GONE);
+                fileContainer.setOnClickListener(null);
+            }
+
             if (msg.isImage()) {
                 // 图片消息
-                tvMessage.setVisibility(View.GONE);
-                ImageView ivImage = itemView.findViewById(R.id.ivMessageImage);
                 if (ivImage != null) {
                     ivImage.setVisibility(View.VISIBLE);
 
@@ -568,8 +590,6 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 });
             } else if (msg.isFile()) {
                 // 文件消息
-                tvMessage.setVisibility(View.GONE);
-                View fileContainer = itemView.findViewById(R.id.fileContainer);
                 if (fileContainer != null) {
                     fileContainer.setVisibility(View.VISIBLE);
                     TextView tvFileName = fileContainer.findViewById(R.id.tvFileName);

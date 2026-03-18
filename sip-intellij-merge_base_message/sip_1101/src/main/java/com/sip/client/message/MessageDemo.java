@@ -41,7 +41,7 @@ public class MessageDemo {
             // Step 2: 配置参数
             String localIp = "0.0.0.0";
             int localPort = getPortForUser(username);  // 不同用户使用不同端口
-            String serverHost = "10.129.114.129";  // 本地测试，指向本地Kamailio
+            String serverHost = "10.29.209.85";  // 本地测试，指向本地Kamailio
             int serverPort = 5060;
 
             log.info("========================================");

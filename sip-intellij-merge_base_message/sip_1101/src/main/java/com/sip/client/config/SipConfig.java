@@ -41,7 +41,7 @@ public class SipConfig {
     private static Integer sharedSipPort = null;
 
     // 默认值（防止配置文件读取失败）
-    private static final String DEFAULT_SIP_HOST = "10.129.172.123";
+    private static final String DEFAULT_SIP_HOST = "10.29.209.85";
     private static final int DEFAULT_SIP_PORT = 5060;
     private static final String DEFAULT_SIP_DOMAIN = "myvoipapp.com";
     private static final String DEFAULT_HTTP_HOST = "localhost";

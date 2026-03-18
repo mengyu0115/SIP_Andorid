@@ -30,7 +30,7 @@ public class HttpClientUtil {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static String baseUrl = "http://10.129.114.129:8081";
+    private static String baseUrl = "http://10.29.209.85:8081";
     private static String authToken = null;
 
     /**

@@ -46,7 +46,7 @@ public class LoginController {
 
     static {
         // 从共享配置初始化服务器地址
-        String serverIp = sharedConfig.getProperty("SERVER_IP", "10.129.172.123");
+        String serverIp = sharedConfig.getProperty("SERVER_IP", "10.29.209.85");
         int httpPort = Integer.parseInt(sharedConfig.getProperty("HTTP_PORT", "8081"));
         int sipPort = Integer.parseInt(sharedConfig.getProperty("SIP_PORT", "5060"));
 

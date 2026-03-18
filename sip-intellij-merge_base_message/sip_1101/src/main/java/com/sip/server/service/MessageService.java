@@ -2,13 +2,16 @@ package com.sip.server.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.sip.server.entity.Message;
+import com.sip.server.entity.User;
 import com.sip.server.mapper.MessageMapper;
+import com.sip.server.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 消息服务类
@@ -23,17 +26,65 @@ public class MessageService {
     @Autowired
     private MessageMapper messageMapper;
 
+    @Autowired
+    private UserMapper userMapper;
+
     /**
-     * 保存消息
+     * SIP号码 → 数据库真实id 的缓存
+     * PC 端 getUserIdByUsername 曾用 username 数字部分（如 100）当 userId，
+     * 实际数据库中 user100 的 id 可能是 1。此缓存用于自动纠正。
+     */
+    private final ConcurrentHashMap<Long, Long> sipNumberToRealIdCache = new ConcurrentHashMap<>();
+
+    /**
+     * 保存消息（自动纠正错误的 userId）
      */
     public Message saveMessage(Message message) {
         if (message.getSendTime() == null) {
             message.setSendTime(LocalDateTime.now());
         }
+        // 自动纠正 fromUserId / toUserId（兼容 PC 端用 SIP number 代替真实 id 的问题）
+        message.setFromUserId(resolveRealUserId(message.getFromUserId()));
+        message.setToUserId(resolveRealUserId(message.getToUserId()));
+
         messageMapper.insert(message);
         log.info("消息已保存: id={}, type={}, fromUser={}, toUser={}",
                 message.getId(), message.getMsgType(), message.getFromUserId(), message.getToUserId());
         return message;
+    }
+
+    /**
+     * 将可能是 SIP number 的 userId 转换为数据库真实 id。
+     * 如果 userId 在 user 表中存在则直接返回；
+     * 否则尝试查找 username = "user" + userId 的用户，返回其真实 id。
+     */
+    private Long resolveRealUserId(Long userId) {
+        if (userId == null) return null;
+
+        // 先查缓存
+        Long cached = sipNumberToRealIdCache.get(userId);
+        if (cached != null) return cached;
+
+        // 检查该 id 是否在 user 表中直接存在
+        User user = userMapper.selectById(userId);
+        if (user != null) {
+            // 是真实 id，缓存并返回
+            sipNumberToRealIdCache.put(userId, userId);
+            return userId;
+        }
+
+        // 不存在，尝试按 username = "user" + userId 查找
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.eq("username", "user" + userId);
+        User found = userMapper.selectOne(wrapper);
+        if (found != null) {
+            log.info("userId 自动纠正: {} -> {} (username={})", userId, found.getId(), found.getUsername());
+            sipNumberToRealIdCache.put(userId, found.getId());
+            return found.getId();
+        }
+
+        // 都找不到，原样返回
+        return userId;
     }
 
     /**
@@ -125,8 +176,9 @@ public class MessageService {
      * 获取用户的离线消息
      */
     public List<Message> getOfflineMessages(Long userId) {
+        Long realId = resolveRealUserId(userId);
         QueryWrapper<Message> wrapper = new QueryWrapper<>();
-        wrapper.eq("to_user_id", userId)
+        wrapper.eq("to_user_id", realId)
                .eq("is_offline", 1)
                .eq("is_read", 0)
                .orderByAsc("send_time");
@@ -165,10 +217,12 @@ public class MessageService {
      * 获取两个用户之间的聊天记录
      */
     public List<Message> getChatHistory(Long userId1, Long userId2, int limit) {
+        Long realId1 = resolveRealUserId(userId1);
+        Long realId2 = resolveRealUserId(userId2);
         QueryWrapper<Message> wrapper = new QueryWrapper<>();
         wrapper.and(w -> w
-            .and(w1 -> w1.eq("from_user_id", userId1).eq("to_user_id", userId2))
-            .or(w2 -> w2.eq("from_user_id", userId2).eq("to_user_id", userId1))
+            .and(w1 -> w1.eq("from_user_id", realId1).eq("to_user_id", realId2))
+            .or(w2 -> w2.eq("from_user_id", realId2).eq("to_user_id", realId1))
         );
         wrapper.orderByDesc("send_time").last("LIMIT " + limit);
         List<Message> messages = messageMapper.selectList(wrapper);

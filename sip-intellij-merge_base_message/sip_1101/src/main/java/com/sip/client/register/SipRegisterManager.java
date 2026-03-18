@@ -180,7 +180,7 @@ public class SipRegisterManager implements SipListener {
      */
     public void register(String username, String password, String domain) {
         // 从domain解析服务器地址（简单实现，直接使用domain作为服务器地址）
-        register(username, password, domain,"10.129.114.129" , 5060);
+        register(username, password, domain,"10.29.209.85" , 5060);
     }
 
     /**

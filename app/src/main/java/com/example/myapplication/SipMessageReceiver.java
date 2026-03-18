@@ -92,15 +92,24 @@ public class SipMessageReceiver {
     }
 
     /**
-     * 从 SIP URI 中提取用户名
-     * 例如：sip:alice@10.129.114.129 -> alice
-     * 对应 PC 端 MainController.extractUsernameFromUri
+     * 从 SIP URI 中提取用户名，并统一为纯数字 ID
+     * 例如：sip:user101@10.29.209.85 -> 101
+     *       sip:101@10.29.209.85     -> 101
+     *
+     * PC 端 SIP 账号格式为 "user101"，Android 端内部用纯数字 userId（"101"）
+     * 作为 UnreadManager / ConversationFragment 的统一 key。
+     * 这里在提取后去掉 "user" 前缀，保证两端 key 一致。
      */
     private String extractUsername(String sipUri) {
         if (sipUri == null) return "";
         String s = sipUri.startsWith("sip:") ? sipUri.substring(4) : sipUri;
         int at = s.indexOf('@');
-        return at > 0 ? s.substring(0, at) : s;
+        String username = at > 0 ? s.substring(0, at) : s;
+        // 统一去掉 "user" 前缀，使 fromUsername 与 Android 内部 userId 字符串一致
+        if (username.startsWith("user")) {
+            username = username.substring(4);
+        }
+        return username;
     }
 
     /** 内部包装类，用于标记通过 setCallback 注册的旧回调 */
