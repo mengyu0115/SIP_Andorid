@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="8dp">
+
+    <!-- 头像首字母 -->
+    <TextView
+        android:id="@+id/tvAvatar"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="#2196F3"
+        android:gravity="center"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <!-- 用户名 -->
+    <TextView
+        android:id="@+id/tvParticipantName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="#333333"
+        android:textSize="15sp" />
+
+    <!-- 音频状态 -->
+    <TextView
+        android:id="@+id/tvParticipantAudio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textSize="16sp" />
+
+    <!-- 视频状态 -->
+    <TextView
+        android:id="@+id/tvParticipantVideo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:textSize="16sp" />
+
+</LinearLayout>

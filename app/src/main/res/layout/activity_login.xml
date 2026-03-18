@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp">
+
+        <!-- 欢迎标题 -->
+        <TextView
+            android:id="@+id/tvWelcome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="欢迎登录"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#1A1A1A"
+            android:layout_marginTop="80dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- 副标题 -->
+        <TextView
+            android:id="@+id/tvSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="请登录您的 SIP 账户"
+            android:textSize="14sp"
+            android:textColor="#999999"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/tvWelcome"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- 用户名输入框 -->
+        <LinearLayout
+            android:id="@+id/layoutUsername"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="48dp"
+            app:layout_constraintTop_toBottomOf="@id/tvSubtitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:orientation="horizontal"
+                android:background="#F5F5F5"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_menu_sort_by_size"
+                    android:tint="#CCCCCC"
+                    android:layout_marginEnd="12dp" />
+
+                <EditText
+                    android:id="@+id/etUsername"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:hint="请输入用户名（SIP 账号）"
+                    android:textColorHint="#CCCCCC"
+                    android:textColor="#1A1A1A"
+                    android:textSize="15sp"
+                    android:background="@android:color/transparent"
+                    android:inputType="text"
+                    android:maxLines="1" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 密码输入框 -->
+        <LinearLayout
+            android:id="@+id/layoutPassword"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/layoutUsername"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:orientation="horizontal"
+                android:background="#F5F5F5"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_lock_idle_lock"
+                    android:tint="#CCCCCC"
+                    android:layout_marginEnd="12dp" />
+
+                <EditText
+                    android:id="@+id/etPassword"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:hint="请输入密码"
+                    android:textColorHint="#CCCCCC"
+                    android:textColor="#1A1A1A"
+                    android:textSize="15sp"
+                    android:background="@android:color/transparent"
+                    android:inputType="textPassword"
+                    android:maxLines="1" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 服务器IP输入框 -->
+        <LinearLayout
+            android:id="@+id/layoutServerIp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/layoutPassword"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:orientation="horizontal"
+                android:background="#F5F5F5"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_menu_compass"
+                    android:tint="#CCCCCC"
+                    android:layout_marginEnd="12dp" />
+
+                <EditText
+                    android:id="@+id/etServerIp"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:hint="服务器 IP"
+                    android:textColorHint="#CCCCCC"
+                    android:textColor="#1A1A1A"
+                    android:textSize="15sp"
+                    android:background="@android:color/transparent"
+                    android:inputType="text"
+                    android:maxLines="1" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 登录按钮 -->
+        <Button
+            android:id="@+id/btnLogin"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:text="登录"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#1E88E5"
+            android:layout_marginTop="32dp"
+            app:layout_constraintTop_toBottomOf="@id/layoutServerIp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- 分隔线 -->
+        <LinearLayout
+            android:id="@+id/dividerOr"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/btnLogin"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="#E5E5E5" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="或者"
+                android:textSize="12sp"
+                android:textColor="#999999"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="#E5E5E5" />
+
+        </LinearLayout>
+
+        <!-- 直接进入主界面按钮（调试/体验用） -->
+        <Button
+            android:id="@+id/btnSkipLogin"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:text="直接进入主界面"
+            android:textSize="15sp"
+            android:textColor="#1E88E5"
+            android:backgroundTint="#E3F2FD"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="32dp"
+            app:layout_constraintTop_toBottomOf="@id/dividerOr"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.sip.client.ui.controller.LoginController"
+           prefHeight="600.0" prefWidth="500.0"
+           styleClass="login-container">
+
+    <!-- 登录卡片 -->
+    <VBox alignment="CENTER" spacing="25" maxWidth="400" maxHeight="550"
+          style="-fx-background-color: white; -fx-background-radius: 20px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 20, 0, 0, 10);">
+
+        <padding>
+            <Insets top="50" right="40" bottom="50" left="40"/>
+        </padding>
+
+        <!-- Logo/Title Area -->
+        <VBox alignment="CENTER" spacing="12">
+            <!-- 图标圆圈 -->
+            <StackPane prefWidth="80" prefHeight="80"
+                      style="-fx-background-color: linear-gradient(to bottom right, #667eea 0%, #764ba2 100%); -fx-background-radius: 40px; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.4), 15, 0, 0, 5);">
+                <Label text="SIP" textFill="WHITE" style="-fx-font-size: 32px; -fx-font-weight: bold;"/>
+            </StackPane>
+
+            <Label text="即时通信客户端" styleClass="title-label">
+                <font>
+                    <Font name="Microsoft YaHei Bold" size="24"/>
+                </font>
+            </Label>
+            <Label text="基于 MiniSIPServer" styleClass="subtitle-label">
+                <font>
+                    <Font size="13"/>
+                </font>
+            </Label>
+        </VBox>
+
+        <!-- Login Form -->
+        <VBox spacing="20" VBox.vgrow="ALWAYS">
+            <VBox spacing="8">
+                <Label text="账号" styleClass="field-label">
+                    <font>
+                        <Font name="Microsoft YaHei" size="13"/>
+                    </font>
+                </Label>
+                <TextField fx:id="usernameField"
+                          promptText="请输入SIP账号"
+                          styleClass="login-field"
+                          prefHeight="45">
+                    <font>
+                        <Font size="14"/>
+                    </font>
+                </TextField>
+            </VBox>
+
+            <VBox spacing="8">
+                <Label text="密码" styleClass="field-label">
+                    <font>
+                        <Font name="Microsoft YaHei" size="13"/>
+                    </font>
+                </Label>
+                <PasswordField fx:id="passwordField"
+                              promptText="请输入密码"
+                              styleClass="login-field"
+                              prefHeight="45">
+                    <font>
+                        <Font size="14"/>
+                    </font>
+                </PasswordField>
+            </VBox>
+
+            <!-- Status Label -->
+            <VBox spacing="5" minHeight="30">
+                <Label fx:id="statusLabel"
+                      wrapText="true"
+                      visible="false"
+                      styleClass="status-label"
+                      alignment="CENTER"
+                      maxWidth="Infinity">
+                    <font>
+                        <Font size="12"/>
+                    </font>
+                </Label>
+            </VBox>
+        </VBox>
+
+        <!-- Login Button -->
+        <Button fx:id="loginButton"
+                text="登 录"
+                onAction="#handleLogin"
+                prefWidth="320"
+                prefHeight="50"
+                styleClass="login-button">
+            <font>
+                <Font name="Microsoft YaHei Bold" size="16"/>
+            </font>
+        </Button>
+
+        <!-- Footer Info -->
+        <VBox alignment="CENTER" spacing="8">
+            <HBox alignment="CENTER" spacing="10">
+                <Label text="●" textFill="#667eea" style="-fx-font-size: 10px;"/>
+                <Label text="服务器: 10.29.209.85:5060" styleClass="info-label">
+                    <font>
+                        <Font size="11"/>
+                    </font>
+                </Label>
+            </HBox>
+            <Label text="测试账号: 101/101 或 102/102" styleClass="footer-label">
+                <font>
+                    <Font size="11"/>
+                </font>
+            </Label>
+        </VBox>
+
+    </VBox>
+
+</StackPane>

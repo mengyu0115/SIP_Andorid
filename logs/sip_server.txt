@@ -1,0 +1,108 @@
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= 10.129.172.123
+javax.sip.STACK_NAME= SIP-IM-System
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= null
+-->
+<description
+ logDescription="SIP-IM-System"
+ name="SIP-IM-System"
+ auxInfo="null"/>
+ 
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= 10.129.172.123
+javax.sip.STACK_NAME= SIP-IM-System
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= null
+-->
+<description
+ logDescription="SIP-IM-System"
+ name="SIP-IM-System"
+ auxInfo="null"/>
+ 
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= 10.129.172.123
+javax.sip.STACK_NAME= SIP-IM-System
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= null
+-->
+<description
+ logDescription="SIP-IM-System"
+ name="SIP-IM-System"
+ auxInfo="null"/>
+ 
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= 10.129.172.123
+javax.sip.STACK_NAME= SIP-IM-System
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= null
+-->
+<description
+ logDescription="SIP-IM-System"
+ name="SIP-IM-System"
+ auxInfo="null"/>
+ 
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= 10.129.172.123
+javax.sip.STACK_NAME= SIP-IM-System
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= null
+-->
+<description
+ logDescription="SIP-IM-System"
+ name="SIP-IM-System"
+ auxInfo="null"/>
+ 
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= 10.29.60.107
+javax.sip.STACK_NAME= SIP-IM-System
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= null
+-->
+<description
+ logDescription="SIP-IM-System"
+ name="SIP-IM-System"
+ auxInfo="null"/>
+ 
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= 10.29.60.107
+javax.sip.STACK_NAME= SIP-IM-System
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= null
+-->
+<description
+ logDescription="SIP-IM-System"
+ name="SIP-IM-System"
+ auxInfo="null"/>
+ 
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= 10.29.60.107
+javax.sip.STACK_NAME= SIP-IM-System
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= null
+-->
+<description
+ logDescription="SIP-IM-System"
+ name="SIP-IM-System"
+ auxInfo="null"/>
+ 
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= 10.129.172.123
+javax.sip.STACK_NAME= SIP-IM-System
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= null
+-->
+<description
+ logDescription="SIP-IM-System"
+ name="SIP-IM-System"
+ auxInfo="null"/>
+ 

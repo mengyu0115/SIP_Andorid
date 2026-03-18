@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.sip.client.ui.controller.CallWindowController"
+            prefHeight="600" prefWidth="800"
+            style="-fx-background-color: #2c2c2c;">
+
+    <!-- 顶部：通话信息 -->
+    <top>
+        <VBox spacing="10" style="-fx-background-color: #1e1e1e; -fx-padding: 15px;">
+            <Label fx:id="lblCallWith" text="正在与 XXX 通话..."
+                   style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+            <Label fx:id="lblCallStatus" text="连接中..."
+                   style="-fx-text-fill: #aaaaaa; -fx-font-size: 14px;"/>
+            <Label fx:id="lblCallDuration" text="00:00"
+                   style="-fx-text-fill: #4CAF50; -fx-font-size: 14px;"/>
+        </VBox>
+    </top>
+
+    <!-- 中间：视频显示区域 -->
+    <center>
+        <StackPane style="-fx-background-color: black;">
+            <!-- 远程视频 -->
+            <Canvas fx:id="remoteVideoCanvas" width="800" height="450"/>
+
+            <!-- 本地视频（小窗口） -->
+            <VBox alignment="TOP_RIGHT" StackPane.alignment="TOP_RIGHT">
+                <Canvas fx:id="localVideoCanvas" width="200" height="150"
+                        style="-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0, 0, 0);">
+                    <VBox.margin>
+                        <Insets top="20" right="20"/>
+                    </VBox.margin>
+                </Canvas>
+            </VBox>
+
+            <!-- 仅语音通话时显示的占位符 -->
+            <VBox fx:id="audioOnlyPlaceholder" alignment="CENTER" visible="false"
+                  style="-fx-background-color: #1e1e1e;">
+                <Label text="🎤" style="-fx-font-size: 80px;"/>
+                <Label text="语音通话中" style="-fx-text-fill: white; -fx-font-size: 20px;"/>
+            </VBox>
+        </StackPane>
+    </center>
+
+    <!-- 底部：通话控制按钮 -->
+    <bottom>
+        <HBox spacing="20" alignment="CENTER"
+              style="-fx-background-color: #1e1e1e; -fx-padding: 20px;">
+
+            <!-- 静音按钮 -->
+            <Button fx:id="btnMute" text="🔇 静音" prefWidth="100" prefHeight="50"
+                    onAction="#handleMute"
+                    style="-fx-background-color: #424242; -fx-text-fill: white; -fx-font-size: 14px; -fx-background-radius: 25px;"/>
+
+            <!-- 挂断按钮 -->
+            <Button fx:id="btnHangup" text="📞 挂断" prefWidth="100" prefHeight="50"
+                    onAction="#handleHangup"
+                    style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-size: 14px; -fx-background-radius: 25px; -fx-font-weight: bold;"/>
+
+            <!-- 关闭摄像头按钮（仅视频通话显示） -->
+            <Button fx:id="btnCamera" text="📹 关闭摄像头" prefWidth="120" prefHeight="50"
+                    onAction="#handleCamera"
+                    style="-fx-background-color: #424242; -fx-text-fill: white; -fx-font-size: 14px; -fx-background-radius: 25px;"/>
+        </HBox>
+    </bottom>
+</BorderPane>

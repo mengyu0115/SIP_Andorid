@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17.0.8"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.sip.client.ui.conference.ConferenceViewController"
+            stylesheets="@../css/conference-style.css"
+            prefHeight="800.0" prefWidth="1400.0">
+
+    <!-- 顶部：会议信息 -->
+    <top>
+        <VBox styleClass="header-section" spacing="5">
+            <padding>
+                <Insets top="15" right="20" bottom="15" left="20"/>
+            </padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <Label text="会议标题：" styleClass="label-bold"/>
+                <Label fx:id="lblConferenceTitle" text="未命名会议" styleClass="conference-title">
+                    <font>
+                        <Font name="System Bold" size="18"/>
+                    </font>
+                </Label>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Label text="参与人数：" styleClass="label-bold"/>
+                <Label fx:id="lblParticipantCount" text="0 / 10" styleClass="participant-count">
+                    <font>
+                        <Font size="16"/>
+                    </font>
+                </Label>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="会议 URI：" styleClass="label-secondary"/>
+                <Label fx:id="lblConferenceUri" text="sip:conference@example.com" styleClass="conference-uri"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- 中间：主要内容区域 -->
+    <center>
+        <HBox spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <!-- 左侧：视频显示区域 -->
+            <VBox styleClass="video-section" HBox.hgrow="ALWAYS" spacing="10">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+
+                <Label text="视频画面" styleClass="section-title">
+                    <font>
+                        <Font name="System Bold" size="14"/>
+                    </font>
+                </Label>
+
+                <!-- 3x3 视频网格 -->
+                <GridPane fx:id="videoGridPane" hgap="5" vgap="5" VBox.vgrow="ALWAYS"
+                          styleClass="video-grid">
+                    <!-- 视频画布将通过代码动态添加 -->
+                </GridPane>
+            </VBox>
+
+            <!-- 右侧：参与者列表和聊天 -->
+            <VBox prefWidth="480" spacing="10">
+                <!-- 参与者列表 -->
+                <VBox styleClass="participants-section" VBox.vgrow="ALWAYS" spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+
+                    <Label text="参与者列表" styleClass="section-title">
+                        <font>
+                            <Font name="System Bold" size="14"/>
+                        </font>
+                    </Label>
+
+                    <TableView fx:id="participantTableView" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colNickname" text="昵称" prefWidth="200"/>
+                            <TableColumn fx:id="colRole" text="角色" prefWidth="120"/>
+                            <TableColumn fx:id="colStatus" text="状态" prefWidth="140"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+
+                <!-- 聊天面板 -->
+                <VBox styleClass="chat-section" prefHeight="250" spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+
+                    <Label text="会议聊天" styleClass="section-title">
+                        <font>
+                            <Font name="System Bold" size="14"/>
+                        </font>
+                    </Label>
+
+                    <TextArea fx:id="txtChatMessages" VBox.vgrow="ALWAYS"
+                              editable="false" wrapText="true"
+                              styleClass="chat-messages"/>
+
+                    <HBox spacing="5">
+                        <TextField fx:id="txtChatInput" HBox.hgrow="ALWAYS"
+                                   promptText="输入消息..."
+                                   styleClass="chat-input"/>
+                        <Button fx:id="btnSendChat" text="发送"
+                                styleClass="btn-primary"
+                                prefWidth="70"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </HBox>
+    </center>
+
+    <!-- 底部：控制按钮 -->
+    <bottom>
+        <HBox styleClass="control-section" alignment="CENTER" spacing="15">
+            <padding>
+                <Insets top="15" right="20" bottom="15" left="20"/>
+            </padding>
+
+            <!-- 音视频控制 -->
+            <Button fx:id="btnMuteAudio" text="🎤 静音"
+                    styleClass="btn-control, btn-audio"
+                    prefWidth="120" prefHeight="40">
+                <font>
+                    <Font size="14"/>
+                </font>
+            </Button>
+
+            <Button fx:id="btnMuteVideo" text="📹 关闭视频"
+                    styleClass="btn-control, btn-video"
+                    prefWidth="120" prefHeight="40">
+                <font>
+                    <Font size="14"/>
+                </font>
+            </Button>
+
+            <Separator orientation="VERTICAL"/>
+
+            <!-- 会议控制 -->
+            <Button fx:id="btnInvite" text="👥 邀请"
+                    styleClass="btn-control, btn-invite"
+                    prefWidth="100" prefHeight="40">
+                <font>
+                    <Font size="14"/>
+                </font>
+            </Button>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- 离开和结束 -->
+            <Button fx:id="btnLeave" text="🚪 离开会议"
+                    styleClass="btn-control, btn-warning"
+                    prefWidth="120" prefHeight="40">
+                <font>
+                    <Font size="14"/>
+                </font>
+            </Button>
+
+            <Button fx:id="btnEndConference" text="⏹ 结束会议"
+                    styleClass="btn-control, btn-danger"
+                    prefWidth="120" prefHeight="40"
+                    visible="false">
+                <font>
+                    <Font size="14"/>
+                </font>
+            </Button>
+        </HBox>
+    </bottom>
+</BorderPane>

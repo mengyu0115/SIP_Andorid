@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聊天记录查询 - SIP IM 系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .back-button:hover {
+            background: #5568d3;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            height: calc(100vh - 140px);
+        }
+
+        /* 左侧用户列表 */
+        .user-list-panel {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .search-box {
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .user-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .user-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-item:hover {
+            background: #f8f9fa;
+        }
+
+        .user-item.active {
+            background: #e7f1ff;
+            border-left: 4px solid #667eea;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .user-id {
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* 右侧聊天记录 */
+        .chat-panel {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            background: #f8f9fa;
+        }
+
+        .chat-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .empty-state {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .message-item {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-time {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .message-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .message-content.sent {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message-bubble {
+            max-width: 60%;
+            padding: 10px 15px;
+            border-radius: 10px;
+            word-wrap: break-word;
+        }
+
+        .message-content.received .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+        }
+
+        .message-content.sent .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message-text {
+            line-height: 1.5;
+        }
+
+        .message-image {
+            max-width: 300px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .message-audio {
+            width: 250px;
+        }
+
+        .message-video {
+            max-width: 400px;
+            border-radius: 8px;
+        }
+
+        .message-file {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .file-icon {
+            font-size: 24px;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .file-size {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .pagination {
+            padding: 15px 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pagination button {
+            padding: 6px 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #5568d3;
+        }
+
+        .pagination button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        /* 滚动条样式 */
+        .user-list::-webkit-scrollbar,
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .user-list::-webkit-scrollbar-track,
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .user-list::-webkit-scrollbar-thumb,
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .user-list::-webkit-scrollbar-thumb:hover,
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>💬 聊天记录查询</h1>
+            <a href="/view/dashboard" class="back-button">← 返回控制台</a>
+        </div>
+
+        <!-- 主内容 -->
+        <div class="main-content">
+            <!-- 左侧：用户列表 -->
+            <div class="user-list-panel">
+                <div class="search-box">
+                    <input type="text" id="userSearch" placeholder="🔍 搜索用户..." onkeyup="searchUsers()">
+                </div>
+                <div class="user-list" id="userList">
+                    <div class="loading">⏳ 加载用户列表...</div>
+                </div>
+            </div>
+
+            <!-- 右侧：聊天记录 -->
+            <div class="chat-panel">
+                <div class="chat-header">
+                    <div class="chat-title" id="chatTitle">请选择用户查看聊天记录</div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💬</div>
+                        <p>请从左侧选择用户查看聊天记录</p>
+                    </div>
+                </div>
+                <div class="pagination" id="pagination" style="display:none;">
+                    <button id="prevBtn" onclick="previousPage()">上一页</button>
+                    <span id="pageInfo">第 1 页</span>
+                    <button id="nextBtn" onclick="nextPage()">下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allUsers = [];
+        let selectedUserId = null;
+        let currentPage = 1;
+        let pageSize = 20;
+        let totalPages = 1;
+
+        // 页面加载时获取用户列表
+        window.onload = function() {
+            loadUserList();
+        };
+
+        // 加载用户列表
+        function loadUserList() {
+            fetch('/api/admin/users/list')
+                .then(response => response.json())
+                .then(result => {
+                    if (result.code === 200) {
+                        allUsers = result.data;
+                        displayUserList(allUsers);
+                    } else {
+                        document.getElementById('userList').innerHTML =
+                            '<div class="loading">❌ 加载失败</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('加载用户列表失败:', error);
+                    document.getElementById('userList').innerHTML =
+                        '<div class="loading">❌ 加载失败</div>';
+                });
+        }
+
+        // 显示用户列表
+        function displayUserList(users) {
+            const userList = document.getElementById('userList');
+            if (users.length === 0) {
+                userList.innerHTML = '<div class="loading">📭 暂无用户</div>';
+                return;
+            }
+
+            userList.innerHTML = '';
+            users.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                userItem.onclick = () => selectUser(user);
+
+                const avatar = document.createElement('div');
+                avatar.className = 'user-avatar';
+                avatar.textContent = (user.nickname || user.username).charAt(0).toUpperCase();
+
+                const userInfo = document.createElement('div');
+                userInfo.className = 'user-info';
+
+                const userName = document.createElement('div');
+                userName.className = 'user-name';
+                userName.textContent = user.nickname || user.username;
+
+                const userId = document.createElement('div');
+                userId.className = 'user-id';
+                userId.textContent = `ID: ${user.id} | ${user.username}`;
+
+                userInfo.appendChild(userName);
+                userInfo.appendChild(userId);
+
+                userItem.appendChild(avatar);
+                userItem.appendChild(userInfo);
+                userList.appendChild(userItem);
+            });
+        }
+
+        // 搜索用户
+        function searchUsers() {
+            const keyword = document.getElementById('userSearch').value.toLowerCase();
+            const filtered = allUsers.filter(user =>
+                (user.username && user.username.toLowerCase().includes(keyword)) ||
+                (user.nickname && user.nickname.toLowerCase().includes(keyword)) ||
+                (user.id && user.id.toString().includes(keyword))
+            );
+            displayUserList(filtered);
+        }
+
+        // 选择用户
+        function selectUser(user) {
+            // 移除之前的active状态
+            document.querySelectorAll('.user-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // 设置新的active状态
+            event.currentTarget.classList.add('active');
+
+            selectedUserId = user.id;
+            document.getElementById('chatTitle').textContent =
+                `与 ${user.nickname || user.username} (${user.username}) 的聊天记录`;
+
+            currentPage = 1;
+            loadChatHistory();
+        }
+
+        // 加载聊天记录
+        function loadChatHistory() {
+            if (!selectedUserId) return;
+
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '<div class="loading">⏳ 加载中...</div>';
+
+            // 这里我们需要选择另一个用户ID，为了演示，我们假设选择的用户与其他所有用户的聊天记录
+            // 实际应用中，需要先获取该用户的对话列表，然后选择其中一个
+            // 为简化，我们直接加载与用户ID=1的聊天记录（假设1是系统管理员）
+
+            // 获取对话列表
+            fetch(`/api/admin/user/${selectedUserId}/conversations`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.code === 200 && result.data && result.data.length > 0) {
+                        // 选择第一个对话
+                        const firstConversation = result.data[0];
+                        loadMessagesWithUser(selectedUserId, firstConversation.userId);
+                    } else {
+                        chatMessages.innerHTML =
+                            '<div class="empty-state"><div class="empty-state-icon">📭</div><p>暂无聊天记录</p></div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('加载对话列表失败:', error);
+                    chatMessages.innerHTML =
+                        '<div class="empty-state"><div class="empty-state-icon">❌</div><p>加载失败</p></div>';
+                });
+        }
+
+        // 加载与指定用户的聊天记录
+        function loadMessagesWithUser(userId, otherUserId) {
+            fetch(`/api/admin/user/${userId}/messages?otherUserId=${otherUserId}&pageNum=${currentPage}&pageSize=${pageSize}`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.code === 200 && result.data) {
+                        const page = result.data;
+                        displayMessages(page.records, userId);
+                        updatePagination(page.current, page.pages);
+                    } else {
+                        document.getElementById('chatMessages').innerHTML =
+                            '<div class="empty-state"><div class="empty-state-icon">📭</div><p>暂无聊天记录</p></div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('加载聊天记录失败:', error);
+                    document.getElementById('chatMessages').innerHTML =
+                        '<div class="empty-state"><div class="empty-state-icon">❌</div><p>加载失败</p></div>';
+                });
+        }
+
+        // 显示消息
+        function displayMessages(messages, currentUserId) {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '';
+
+            if (messages.length === 0) {
+                chatMessages.innerHTML =
+                    '<div class="empty-state"><div class="empty-state-icon">📭</div><p>暂无聊天记录</p></div>';
+                return;
+            }
+
+            // 按时间正序排列（最新消息在底部）
+            messages.reverse();
+
+            messages.forEach((message, index) => {
+                const messageItem = document.createElement('div');
+                messageItem.className = 'message-item';
+
+                // 时间标签（相邻消息时间间隔超过5分钟才显示）
+                const showTime = index === 0 ||
+                    (new Date(message.sendTime) - new Date(messages[index-1].sendTime)) > 5 * 60 * 1000;
+
+                if (showTime) {
+                    const timeDiv = document.createElement('div');
+                    timeDiv.className = 'message-time';
+                    timeDiv.textContent = formatDateTime(message.sendTime);
+                    messageItem.appendChild(timeDiv);
+                }
+
+                // 消息内容
+                const isSent = message.fromUserId === currentUserId;
+                const contentDiv = document.createElement('div');
+                contentDiv.className = `message-content ${isSent ? 'sent' : 'received'}`;
+
+                // 头像
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = isSent ? 'Me' : 'Ta';
+
+                // 消息气泡
+                const bubble = document.createElement('div');
+                bubble.className = 'message-bubble';
+
+                // 根据消息类型渲染内容
+                renderMessageContent(bubble, message);
+
+                contentDiv.appendChild(avatar);
+                contentDiv.appendChild(bubble);
+                messageItem.appendChild(contentDiv);
+                chatMessages.appendChild(messageItem);
+            });
+
+            // 滚动到底部
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 渲染消息内容
+        function renderMessageContent(bubble, message) {
+            switch (message.msgType) {
+                case 1: // 文字
+                    const textDiv = document.createElement('div');
+                    textDiv.className = 'message-text';
+                    textDiv.textContent = message.content;
+                    bubble.appendChild(textDiv);
+                    break;
+
+                case 2: // 图片
+                    const img = document.createElement('img');
+                    img.className = 'message-image';
+                    img.src = message.fileUrl;
+                    img.alt = '图片';
+                    img.onclick = () => window.open(message.fileUrl, '_blank');
+                    bubble.appendChild(img);
+                    break;
+
+                case 3: // 语音
+                    const audio = document.createElement('audio');
+                    audio.className = 'message-audio';
+                    audio.controls = true;
+                    audio.src = message.fileUrl;
+                    bubble.appendChild(audio);
+
+                    const audioInfo = document.createElement('div');
+                    audioInfo.style.fontSize = '12px';
+                    audioInfo.style.marginTop = '5px';
+                    audioInfo.textContent = `时长: ${message.duration}秒`;
+                    bubble.appendChild(audioInfo);
+                    break;
+
+                case 4: // 视频
+                    const video = document.createElement('video');
+                    video.className = 'message-video';
+                    video.controls = true;
+                    video.src = message.fileUrl;
+                    bubble.appendChild(video);
+
+                    const videoInfo = document.createElement('div');
+                    videoInfo.style.fontSize = '12px';
+                    videoInfo.style.marginTop = '5px';
+                    videoInfo.textContent = `时长: ${message.duration}秒`;
+                    bubble.appendChild(videoInfo);
+                    break;
+
+                case 5: // 文件
+                    const fileLink = document.createElement('a');
+                    fileLink.className = 'message-file';
+                    fileLink.href = message.fileUrl;
+                    fileLink.download = true;
+
+                    const fileIcon = document.createElement('div');
+                    fileIcon.className = 'file-icon';
+                    fileIcon.textContent = '📎';
+
+                    const fileInfo = document.createElement('div');
+                    fileInfo.className = 'file-info';
+
+                    const fileName = document.createElement('div');
+                    fileName.className = 'file-name';
+                    fileName.textContent = message.content.replace('[文件] ', '');
+
+                    const fileSize = document.createElement('div');
+                    fileSize.className = 'file-size';
+                    fileSize.textContent = formatFileSize(message.fileSize);
+
+                    fileInfo.appendChild(fileName);
+                    fileInfo.appendChild(fileSize);
+
+                    fileLink.appendChild(fileIcon);
+                    fileLink.appendChild(fileInfo);
+                    bubble.appendChild(fileLink);
+                    break;
+
+                default:
+                    const unknownDiv = document.createElement('div');
+                    unknownDiv.textContent = message.content || '[未知消息类型]';
+                    bubble.appendChild(unknownDiv);
+            }
+        }
+
+        // 更新分页
+        function updatePagination(current, pages) {
+            currentPage = current;
+            totalPages = pages;
+
+            document.getElementById('pageInfo').textContent = `第 ${current} 页，共 ${pages} 页`;
+            document.getElementById('prevBtn').disabled = current === 1;
+            document.getElementById('nextBtn').disabled = current === pages;
+            document.getElementById('pagination').style.display = pages > 1 ? 'flex' : 'none';
+        }
+
+        // 上一页
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadChatHistory();
+            }
+        }
+
+        // 下一页
+        function nextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadChatHistory();
+            }
+        }
+
+        // 格式化日期时间
+        function formatDateTime(dateTimeStr) {
+            if (!dateTimeStr) return '-';
+            const date = new Date(dateTimeStr);
+            const now = new Date();
+            const diff = now - date;
+
+            // 今天
+            if (diff < 24 * 60 * 60 * 1000 && date.getDate() === now.getDate()) {
+                return date.toLocaleTimeString('zh-CN', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            // 昨天
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (date.getDate() === yesterday.getDate()) {
+                return '昨天 ' + date.toLocaleTimeString('zh-CN', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            // 其他
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (!bytes) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>

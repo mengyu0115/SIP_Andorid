@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1A1A1A"
+    android:orientation="vertical">
+
+    <!-- 顶部栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="#2A2A2A"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+
+        <TextView
+            android:id="@+id/tvConferenceTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="会议"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvConferenceCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="#3A3A3A"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:textColor="#AAAAAA"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvParticipantCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="1人"
+            android:textColor="#AAAAAA"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="00:00"
+            android:textColor="#FF5252"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- 视频网格 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvVideoGrid"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="4dp" />
+
+    <!-- 远程屏幕共享查看器（覆盖在视频网格上） -->
+    <FrameLayout
+        android:id="@+id/screenShareOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#000000"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/ivScreenShare"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/tvScreenShareOverlayLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="8dp"
+            android:background="#80000000"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:text="屏幕共享中"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp" />
+    </FrameLayout>
+
+    <!-- 聊天面板（可折叠） -->
+    <LinearLayout
+        android:id="@+id/chatPanel"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="#222222"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#3A3A3A" />
+
+        <!-- 拖拽指示条 -->
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginVertical="6dp"
+            android:background="#555555" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvChat"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:padding="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="8dp">
+
+            <EditText
+                android:id="@+id/etChatInput"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:background="#3A3A3A"
+                android:hint="输入消息..."
+                android:imeOptions="actionSend"
+                android:inputType="text"
+                android:paddingHorizontal="12dp"
+                android:singleLine="true"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#666666"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/btnSendChat"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginStart="8dp"
+                android:background="#2196F3"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:text="发送"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 底部控制栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:background="#2A2A2A"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <!-- 麦克风 -->
+        <LinearLayout
+            android:id="@+id/btnMic"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvMicIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔇"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tvMicLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="静音"
+                android:textColor="#AAAAAA"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 免提 -->
+        <LinearLayout
+            android:id="@+id/btnSpeaker"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvSpeakerIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔊"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tvSpeakerLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="免提"
+                android:textColor="#AAAAAA"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 摄像头 -->
+        <LinearLayout
+            android:id="@+id/btnCamera"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvCameraIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📷"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tvCameraLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="摄像头"
+                android:textColor="#AAAAAA"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 切换摄像头 -->
+        <LinearLayout
+            android:id="@+id/btnSwitchCamera"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvSwitchCameraIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔄"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tvSwitchCameraLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="翻转"
+                android:textColor="#AAAAAA"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 屏幕共享 -->
+        <LinearLayout
+            android:id="@+id/btnScreenShare"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvScreenShareIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🖥"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tvScreenShareLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="共享"
+                android:textColor="#AAAAAA"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 聊天 -->
+        <FrameLayout
+            android:id="@+id/btnChat"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💬"
+                    android:textSize="24sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="聊天"
+                    android:textColor="#AAAAAA"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvChatBadge"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="6dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/shape_unread_badge"
+                android:gravity="center"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- 挂断 -->
+        <LinearLayout
+            android:id="@+id/btnHangup"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="48dp"
+                android:layout_height="32dp"
+                android:background="#FF3B30"
+                android:gravity="center"
+                android:text="📞"
+                android:textSize="18sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="挂断"
+                android:textColor="#FF3B30"
+                android:textSize="10sp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
