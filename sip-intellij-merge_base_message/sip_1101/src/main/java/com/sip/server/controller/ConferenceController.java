@@ -13,7 +13,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 会议管理 Controller（简化版）
@@ -243,6 +247,61 @@ public class ConferenceController {
             return Result.success("查询成功", conferences);
         } catch (Exception e) {
             logger.error("查询用户会议失败", e);
+            return Result.error(500, "查询失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 查询所有会议（含时长、创建者用户名、参与者用户名，供前端管理页面使用）
+     *
+     * GET /api/conference/list
+     */
+    @GetMapping("/list")
+    public Result<List<Map<String, Object>>> listAllConferences() {
+        logger.info("查询所有会议记录");
+
+        try {
+            List<Conference> all = conferenceService.getAllConferences();
+            List<Map<String, Object>> result = new ArrayList<>();
+
+            for (Conference conf : all) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", conf.getId());
+                item.put("conferenceCode", conf.getConferenceCode());
+                item.put("title", conf.getTitle());
+                item.put("startTime", conf.getStartTime());
+                item.put("endTime", conf.getEndTime());
+                item.put("status", conf.getStatus());
+                item.put("isActive", conf.getIsActive());
+
+                // 计算会议时长（秒）
+                if (conf.getStartTime() != null && conf.getEndTime() != null) {
+                    long durationSeconds = Duration.between(conf.getStartTime(), conf.getEndTime()).getSeconds();
+                    item.put("duration", durationSeconds);
+                } else {
+                    item.put("duration", null);
+                }
+
+                // 创建者用户名
+                User creator = userService.getUserById(conf.getCreatorId());
+                item.put("creatorName", creator != null ? creator.getUsername() : "未知用户");
+
+                // 参与者用户名列表
+                List<ConferenceParticipant> participants = conferenceService.getParticipants(conf.getId());
+                List<String> participantNames = new ArrayList<>();
+                for (ConferenceParticipant p : participants) {
+                    User pUser = userService.getUserById(p.getUserId());
+                    participantNames.add(pUser != null ? pUser.getUsername() : "未知用户");
+                }
+                item.put("participants", participantNames);
+                item.put("participantCount", participantNames.size());
+
+                result.add(item);
+            }
+
+            return Result.success(result);
+        } catch (Exception e) {
+            logger.error("查询所有会议失败", e);
             return Result.error(500, "查询失败: " + e.getMessage());
         }
     }

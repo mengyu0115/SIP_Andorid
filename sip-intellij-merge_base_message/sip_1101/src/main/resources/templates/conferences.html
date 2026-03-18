@@ -319,7 +319,7 @@
         <!-- 头部 -->
         <div class="header">
             <h1>📹 会议管理</h1>
-            <a href="http://10.29.209.85:8081/dashboard" class="back-btn">← 返回主页</a>
+            <a href="/dashboard" class="back-btn">← 返回主页</a>
         </div>
 
         <!-- 错误提示 -->
@@ -397,7 +397,7 @@
         // 加载会议列表
         async function loadConferences() {
             try {
-                const response = await fetch('http://10.29.209.85:8081/api/conference/list');
+                const response = await fetch('/api/conference/list');
                 const result = await response.json();
 
                 if (result.code === 200) {
@@ -437,8 +437,8 @@
                 <div class="conference-card">
                     <div class="conference-header">
                         <div class="conference-title">
-                            <h3>${conf.roomNumber || '会议室 ' + conf.conferenceId}</h3>
-                            <div class="conference-id">ID: ${conf.conferenceId}</div>
+                            <h3>${conf.title || '会议 ' + conf.conferenceCode}</h3>
+                            <div class="conference-id">会议号: ${conf.conferenceCode || conf.id}</div>
                         </div>
                         <span class="status-badge ${conf.isActive ? 'status-active' : 'status-inactive'}">
                             ${conf.isActive ? '进行中' : '已结束'}
@@ -448,45 +448,32 @@
                     <div class="conference-info">
                         <div class="info-row">
                             <span class="info-label">创建者</span>
-                            <span class="info-value">${conf.creatorName || conf.creatorId || '-'}</span>
+                            <span class="info-value">${conf.creatorName || '-'}</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">创建时间</span>
-                            <span class="info-value">${formatDateTime(conf.createTime)}</span>
+                            <span class="info-label">开始时间</span>
+                            <span class="info-value">${formatDateTime(conf.startTime)}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">会议时长</span>
+                            <span class="info-value">${formatDuration(conf.duration)}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">参与人数</span>
-                            <span class="info-value">${conf.participantCount || conf.participants?.length || 0} 人</span>
+                            <span class="info-value">${conf.participantCount || 0} 人</span>
                         </div>
-                        ${conf.description ? `
-                        <div class="info-row">
-                            <span class="info-label">会议说明</span>
-                            <span class="info-value">${conf.description}</span>
-                        </div>
-                        ` : ''}
                     </div>
 
                     ${conf.participants && conf.participants.length > 0 ? `
                     <div class="participants">
                         <div class="participants-title">参与者</div>
                         <div class="participant-list">
-                            ${conf.participants.map(p => `
-                                <span class="participant-tag">${p.username || p.userId}</span>
+                            ${conf.participants.map(name => `
+                                <span class="participant-tag">${name}</span>
                             `).join('')}
                         </div>
                     </div>
                     ` : ''}
-
-                    <div class="conference-actions">
-                        <button class="action-btn btn-view" onclick="viewConferenceDetails(${conf.conferenceId})">
-                            查看详情
-                        </button>
-                        ${conf.isActive ? `
-                        <button class="action-btn btn-end" onclick="endConference(${conf.conferenceId})">
-                            结束会议
-                        </button>
-                        ` : ''}
-                    </div>
                 </div>
             `).join('');
 
@@ -510,11 +497,24 @@
             if (!dateTime) return '-';
             const date = new Date(dateTime);
             return date.toLocaleString('zh-CN', {
+                year: 'numeric',
                 month: '2-digit',
                 day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit'
             });
+        }
+
+        // 格式化时长（秒 → 可读）
+        function formatDuration(seconds) {
+            if (!seconds && seconds !== 0) return '进行中';
+            if (seconds < 60) return seconds + '秒';
+            var minutes = Math.floor(seconds / 60);
+            var secs = seconds % 60;
+            if (minutes < 60) return minutes + '分' + secs + '秒';
+            var hours = Math.floor(minutes / 60);
+            minutes = minutes % 60;
+            return hours + '小时' + minutes + '分';
         }
 
         // 更新时间信息
@@ -578,8 +578,8 @@
             // 关键词搜索
             if (keyword) {
                 filtered = filtered.filter(c =>
-                    (c.roomNumber && c.roomNumber.toLowerCase().includes(keyword)) ||
-                    (c.conferenceId && c.conferenceId.toString().includes(keyword)) ||
+                    (c.title && c.title.toLowerCase().includes(keyword)) ||
+                    (c.conferenceCode && c.conferenceCode.includes(keyword)) ||
                     (c.creatorName && c.creatorName.toLowerCase().includes(keyword))
                 );
             }
@@ -600,7 +600,7 @@
             }
 
             try {
-                const response = await fetch(`http://10.29.209.85:8081/api/conference/end/${conferenceId}`, {
+                const response = await fetch(`/api/conference/${conferenceId}/end`, {
                     method: 'POST'
                 });
                 const result = await response.json();

@@ -208,6 +208,15 @@ public class ConferenceServiceSimplified {
     }
 
     /**
+     * 查询所有会议（按创建时间倒序）
+     */
+    public List<Conference> getAllConferences() {
+        QueryWrapper<Conference> wrapper = new QueryWrapper<>();
+        wrapper.orderByDesc("create_time");
+        return conferenceMapper.selectList(wrapper);
+    }
+
+    /**
      * 更新会议时间
      */
     @Transactional

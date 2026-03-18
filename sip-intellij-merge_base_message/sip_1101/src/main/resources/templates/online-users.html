@@ -3,486 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>在线用户管理 - SIP IM 系统</title>
+    <title>用户列表 - SIP IM 系统</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
+        .container { max-width: 1200px; margin: 0 auto; }
         .header {
-            background: white;
-            padding: 25px 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: white; padding: 25px 30px; border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .header h1 {
-            color: #333;
-            font-size: 28px;
-        }
-
+        .header h1 { color: #333; font-size: 28px; }
         .back-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            transition: transform 0.2s;
+            color: white; padding: 10px 20px; border-radius: 5px;
+            text-decoration: none; transition: transform 0.2s;
         }
-
-        .back-btn:hover {
-            transform: translateY(-2px);
-        }
-
+        .back-btn:hover { transform: translateY(-2px); }
         .stats-bar {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-            text-align: center;
+            background: white; padding: 20px; border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center;
         }
-
-        .stat-item h3 {
-            color: #667eea;
-            font-size: 36px;
-            margin-bottom: 5px;
-        }
-
-        .stat-item p {
-            color: #666;
-            font-size: 14px;
-        }
-
+        .stat-item h3 { color: #667eea; font-size: 36px; margin-bottom: 5px; }
+        .stat-item p { color: #666; font-size: 14px; }
         .controls {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
+            background: white; padding: 20px; border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;
+            display: flex; gap: 15px; align-items: center;
         }
-
         .search-box {
-            flex: 1;
-            min-width: 250px;
-            padding: 10px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
-            font-size: 14px;
+            flex: 1; min-width: 250px; padding: 10px 15px;
+            border: 2px solid #e0e0e0; border-radius: 5px; font-size: 14px;
         }
-
-        .search-box:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
+        .search-box:focus { outline: none; border-color: #667eea; }
         .refresh-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: transform 0.2s;
+            color: white; padding: 10px 20px; border: none; border-radius: 5px;
+            cursor: pointer; font-size: 14px;
         }
-
-        .refresh-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .auto-refresh-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #666;
-            font-size: 14px;
-        }
-
         .table-container {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            overflow-x: auto;
+            background: white; padding: 25px; border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow-x: auto;
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 14px;
-            color: #333;
-        }
-
-        tbody tr:hover {
-            background: #f8f9ff;
-        }
-
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        th { padding: 15px; text-align: left; font-weight: 600; font-size: 14px; }
+        td { padding: 12px 15px; border-bottom: 1px solid #f0f0f0; font-size: 14px; color: #333; }
+        tbody tr:hover { background: #f8f9ff; }
         .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
+            display: inline-block; padding: 4px 12px; border-radius: 12px;
+            font-size: 12px; font-weight: bold;
         }
-
-        .status-online {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-
-        .btn-logout {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-logout:hover {
-            background: #c82333;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 15px;
-            display: block;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #667eea;
-        }
-
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-
-        .time-info {
-            color: #999;
-            font-size: 12px;
-            text-align: right;
-            margin-top: 15px;
-        }
+        .status-online { background: #d4edda; color: #155724; }
+        .status-offline { background: #e2e3e5; color: #6c757d; }
+        .loading { text-align: center; padding: 40px; color: #667eea; }
+        .empty-state { text-align: center; padding: 40px; color: #999; }
+        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- 头部 -->
         <div class="header">
-            <h1>👥 在线用户管理</h1>
-            <a href="http://10.29.209.85:8081/dashboard" class="back-btn">← 返回主页</a>
+            <h1>&#128101; 用户列表</h1>
+            <a href="/dashboard" class="back-btn">&#8592; 返回主页</a>
         </div>
-
-        <!-- 错误提示 -->
         <div id="errorMessage" class="error" style="display: none;"></div>
-
-        <!-- 统计栏 -->
         <div class="stats-bar">
             <div class="stat-item">
-                <h3 id="totalOnline">-</h3>
-                <p>当前在线</p>
+                <h3 id="totalUsers">-</h3>
+                <p>总用户数</p>
             </div>
             <div class="stat-item">
-                <h3 id="displayedUsers">-</h3>
-                <p>显示用户</p>
+                <h3 id="onlineCount">-</h3>
+                <p>在线用户</p>
             </div>
             <div class="stat-item">
-                <h3 id="lastUpdate">-</h3>
-                <p>最后更新</p>
+                <h3 id="offlineCount">-</h3>
+                <p>离线用户</p>
             </div>
         </div>
-
-        <!-- 控制栏 -->
         <div class="controls">
-            <input type="text"
-                   id="searchBox"
-                   class="search-box"
-                   placeholder="搜索用户名或SIP地址...">
-            <button class="refresh-btn" onclick="loadOnlineUsers()">🔄 刷新</button>
-            <label class="auto-refresh-label">
-                <input type="checkbox" id="autoRefresh" checked>
-                自动刷新 (30秒)
-            </label>
+            <input type="text" id="searchBox" class="search-box" placeholder="搜索用户名...">
+            <button class="refresh-btn" onclick="loadUsers()">&#128260; 刷新</button>
         </div>
-
-        <!-- 表格容器 -->
         <div class="table-container">
-            <div id="loadingMessage" class="loading">
-                正在加载在线用户数据...
-            </div>
-
+            <div id="loadingMessage" class="loading">正在加载用户数据...</div>
             <table id="userTable" style="display: none;">
                 <thead>
                     <tr>
-                        <th>用户ID</th>
+                        <th>ID</th>
                         <th>用户名</th>
-                        <th>SIP地址</th>
-                        <th>IP地址</th>
-                        <th>登录时间</th>
-                        <th>最后活跃</th>
-                        <th>设备信息</th>
+                        <th>昵称</th>
+                        <th>注册时间</th>
+                        <th>最后登录</th>
                         <th>状态</th>
-                        <th>操作</th>
                     </tr>
                 </thead>
-                <tbody id="userTableBody">
-                </tbody>
+                <tbody id="userTableBody"></tbody>
             </table>
-
-            <div id="emptyState" class="empty-state" style="display: none;">
-                <i>📭</i>
-                <p>暂无在线用户</p>
-            </div>
-
-            <div class="time-info" id="timeInfo"></div>
+            <div id="emptyState" class="empty-state" style="display: none;">暂无用户数据</div>
         </div>
     </div>
-
     <script>
         let allUsers = [];
-        let autoRefreshInterval = null;
 
-        // 页面加载时执行
         document.addEventListener('DOMContentLoaded', function() {
-            loadOnlineUsers();
-            setupAutoRefresh();
-            setupSearch();
+            loadUsers();
+            document.getElementById('searchBox').addEventListener('input', filterUsers);
         });
 
-        // 加载在线用户
-        async function loadOnlineUsers() {
+        async function loadUsers() {
             try {
-                const response = await fetch('http://10.29.209.85:8081/api/online/users');
+                const response = await fetch('/api/admin/users/all-with-status');
                 const result = await response.json();
-
                 if (result.code === 200) {
                     allUsers = result.data || [];
                     displayUsers(allUsers);
-                    updateStats();
-                    hideError();
+                    updateStats(allUsers);
+                    document.getElementById('errorMessage').style.display = 'none';
                 } else {
                     showError('加载失败: ' + result.message);
                 }
             } catch (error) {
-                console.error('加载在线用户失败:', error);
                 showError('网络错误，无法加载数据');
             }
-
-            updateTimeInfo();
         }
 
-        // 显示用户列表
         function displayUsers(users) {
             const tbody = document.getElementById('userTableBody');
             const table = document.getElementById('userTable');
-            const loading = document.getElementById('loadingMessage');
-            const empty = document.getElementById('emptyState');
-
-            loading.style.display = 'none';
+            document.getElementById('loadingMessage').style.display = 'none';
 
             if (users.length === 0) {
                 table.style.display = 'none';
-                empty.style.display = 'block';
+                document.getElementById('emptyState').style.display = 'block';
                 return;
             }
-
-            empty.style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
             table.style.display = 'table';
 
-            tbody.innerHTML = users.map(user => `
-                <tr>
-                    <td>${user.userId}</td>
-                    <td><strong>${user.username}</strong></td>
-                    <td>${user.sipUri}</td>
-                    <td>${user.ipAddress}</td>
-                    <td>${formatDateTime(user.loginTime)}</td>
-                    <td>${formatDateTime(user.lastActiveTime)}</td>
-                    <td>${user.deviceInfo || '-'}</td>
-                    <td><span class="status-badge status-online">在线</span></td>
-                    <td>
-                        <button class="action-btn btn-logout" onclick="forceLogout(${user.userId}, '${user.username}')">
-                            强制下线
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-
-            document.getElementById('displayedUsers').textContent = users.length;
+            tbody.innerHTML = users.map(function(user) {
+                var statusClass = user.isOnline ? 'status-online' : 'status-offline';
+                var statusText = user.isOnline ? '在线' : '离线';
+                return '<tr>' +
+                    '<td>' + user.id + '</td>' +
+                    '<td><strong>' + user.username + '</strong></td>' +
+                    '<td>' + (user.nickname || '-') + '</td>' +
+                    '<td>' + formatDateTime(user.createTime) + '</td>' +
+                    '<td>' + formatDateTime(user.lastLoginTime) + '</td>' +
+                    '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>' +
+                    '</tr>';
+            }).join('');
         }
 
-        // 更新统计信息
-        function updateStats() {
-            document.getElementById('totalOnline').textContent = allUsers.length;
+        function updateStats(users) {
+            var online = users.filter(function(u) { return u.isOnline; }).length;
+            document.getElementById('totalUsers').textContent = users.length;
+            document.getElementById('onlineCount').textContent = online;
+            document.getElementById('offlineCount').textContent = users.length - online;
         }
 
-        // 格式化日期时间
-        function formatDateTime(dateTime) {
-            if (!dateTime) return '-';
-            const date = new Date(dateTime);
+        function filterUsers() {
+            var keyword = document.getElementById('searchBox').value.toLowerCase().trim();
+            if (!keyword) { displayUsers(allUsers); return; }
+            var filtered = allUsers.filter(function(user) {
+                return user.username.toLowerCase().includes(keyword) ||
+                       (user.nickname && user.nickname.toLowerCase().includes(keyword));
+            });
+            displayUsers(filtered);
+        }
+
+        function formatDateTime(dt) {
+            if (!dt) return '-';
+            var date = new Date(dt);
             return date.toLocaleString('zh-CN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit'
             });
         }
 
-        // 更新时间信息
-        function updateTimeInfo() {
-            const now = new Date();
-            document.getElementById('timeInfo').textContent =
-                '数据更新时间: ' + formatDateTime(now);
-            document.getElementById('lastUpdate').textContent =
-                now.toLocaleTimeString('zh-CN');
-        }
-
-        // 设置自动刷新
-        function setupAutoRefresh() {
-            const checkbox = document.getElementById('autoRefresh');
-
-            checkbox.addEventListener('change', function() {
-                if (this.checked) {
-                    startAutoRefresh();
-                } else {
-                    stopAutoRefresh();
-                }
-            });
-
-            // 默认开启
-            if (checkbox.checked) {
-                startAutoRefresh();
-            }
-        }
-
-        function startAutoRefresh() {
-            if (autoRefreshInterval) return;
-            autoRefreshInterval = setInterval(loadOnlineUsers, 30000);
-        }
-
-        function stopAutoRefresh() {
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-                autoRefreshInterval = null;
-            }
-        }
-
-        // 设置搜索功能
-        function setupSearch() {
-            const searchBox = document.getElementById('searchBox');
-            searchBox.addEventListener('input', function() {
-                const keyword = this.value.toLowerCase().trim();
-
-                if (!keyword) {
-                    displayUsers(allUsers);
-                    return;
-                }
-
-                const filtered = allUsers.filter(user =>
-                    user.username.toLowerCase().includes(keyword) ||
-                    user.sipUri.toLowerCase().includes(keyword) ||
-                    user.ipAddress.includes(keyword)
-                );
-
-                displayUsers(filtered);
-            });
-        }
-
-        // 强制下线
-        async function forceLogout(userId, username) {
-            if (!confirm(`确定要强制用户 "${username}" 下线吗？`)) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`http://10.29.209.85:8081/api/online/force-logout/${userId}`, {
-                    method: 'POST'
-                });
-                const result = await response.json();
-
-                if (result.code === 200) {
-                    alert('强制下线成功');
-                    loadOnlineUsers();
-                } else {
-                    alert('操作失败: ' + result.message);
-                }
-            } catch (error) {
-                console.error('强制下线失败:', error);
-                alert('网络错误，操作失败');
-            }
-        }
-
-        // 显示错误
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-        }
-
-        // 隐藏错误
-        function hideError() {
-            document.getElementById('errorMessage').style.display = 'none';
+        function showError(msg) {
+            var el = document.getElementById('errorMessage');
+            el.textContent = msg; el.style.display = 'block';
         }
     </script>
 </body>

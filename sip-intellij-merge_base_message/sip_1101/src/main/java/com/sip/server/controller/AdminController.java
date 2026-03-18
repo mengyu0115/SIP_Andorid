@@ -19,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.sip.server.service.OnlineUserService;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +54,9 @@ public class AdminController {
 
     @Autowired
     private MessageService messageService;
+
+    @Autowired
+    private OnlineUserService onlineUserService;
 
     /**
      * 8.1 获取用户列表
@@ -672,6 +676,40 @@ public class AdminController {
         try {
             IPage<User> page = userAdminService.listUsers(1, 100, keyword);
             return Result.success(page.getRecords());
+        } catch (Exception e) {
+            logger.error("查询用户列表失败", e);
+            return Result.error(500, "查询失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取全部用户列表（含在线状态）
+     *
+     * GET /api/admin/users/all-with-status
+     */
+    @GetMapping("/users/all-with-status")
+    public Result<List<Map<String, Object>>> listAllUsersWithStatus(
+        @RequestParam(required = false) String keyword
+    ) {
+        logger.info("查询全部用户（含在线状态）: keyword={}", keyword);
+
+        try {
+            IPage<User> page = userAdminService.listUsers(1, 1000, keyword);
+            List<Map<String, Object>> result = new java.util.ArrayList<>();
+
+            for (User user : page.getRecords()) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", user.getId());
+                item.put("username", user.getUsername());
+                item.put("nickname", user.getNickname());
+                item.put("avatar", user.getAvatar());
+                item.put("createTime", user.getCreateTime());
+                item.put("lastLoginTime", user.getLastLoginTime());
+                item.put("isOnline", onlineUserService.isUserOnline(user.getId()));
+                result.add(item);
+            }
+
+            return Result.success(result);
         } catch (Exception e) {
             logger.error("查询用户列表失败", e);
             return Result.error(500, "查询失败: " + e.getMessage());

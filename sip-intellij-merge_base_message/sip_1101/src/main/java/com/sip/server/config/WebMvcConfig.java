@@ -30,7 +30,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/api/user/register",    // 放行注册
                         "/api/user/login",       // 放行登录
                         "/api/file/**",          // 放行文件访问
-                        "/api/presence/**"       // ✅ 放行 Presence API（HTTP 状态同步）
+                        "/api/presence/**",      // ✅ 放行 Presence API（HTTP 状态同步）
+                        "/api/admin/users/all-with-status",  // 放行用户列表查询
+                        "/api/call/records-with-name",       // 放行通话记录查询
+                        "/api/conference/list"               // 放行会议记录查询
                 );
     }
 

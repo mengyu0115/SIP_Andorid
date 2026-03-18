@@ -236,7 +236,7 @@
         <div class="header">
             <h1>📞 通话记录管理</h1>
             <div class="header-actions">
-                <a href="/view/dashboard" class="back-button">← 返回控制台</a>
+                <a href="/dashboard" class="back-button">← 返回主页</a>
                 <div>
                     <span id="totalRecords">总记录数: 0</span>
                 </div>
@@ -291,8 +291,8 @@
                 <thead>
                     <tr>
                         <th>记录ID</th>
-                        <th>主叫ID</th>
-                        <th>被叫ID</th>
+                        <th>主叫用户</th>
+                        <th>被叫用户</th>
                         <th>通话类型</th>
                         <th>开始时间</th>
                         <th>结束时间</th>
@@ -351,7 +351,7 @@
             document.getElementById('pagination').style.display = 'none';
 
             // 构建URL
-            let url = `/api/call/records?pageNum=${currentPage}&pageSize=${pageSize}`;
+            let url = `/api/call/records-with-name?pageNum=${currentPage}&pageSize=${pageSize}`;
             if (currentUserId) {
                 url += `&userId=${currentUserId}`;
             }
@@ -397,11 +397,11 @@
                 // 记录ID
                 row.insertCell().textContent = record.id;
 
-                // 主叫ID
-                row.insertCell().textContent = record.callerId;
+                // 主叫用户
+                row.insertCell().textContent = record.callerName;
 
-                // 被叫ID
-                row.insertCell().textContent = record.calleeId;
+                // 被叫用户
+                row.insertCell().textContent = record.calleeName;
 
                 // 通话类型
                 const typeCell = row.insertCell();
